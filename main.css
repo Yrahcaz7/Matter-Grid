@@ -1,0 +1,99 @@
+:root {
+	--bg-color: #101010;
+	--txt-color: #F0F0F0;
+}
+
+* {
+	overscroll-behavior: none;
+}
+
+html, body {
+	margin: 0px;
+	min-width: 400px;
+	height: 100%;
+	background-color: var(--bg-color);
+	text-align: center;
+	font-family: 'Courier New', Courier, monospace;
+	color: var(--txt-color);
+}
+
+#grid {
+	float: inline-start;
+	display: flex;
+	align-items: center;
+	align-content: center;
+    justify-content: center;
+	width: 60%;
+	height: 100%;
+}
+
+#bar {
+	float: inline-end;
+	display: flex;
+	flex-direction: column;
+	width: 40%;
+	height: 100%;
+}
+
+#tabs {
+	box-sizing: border-box;
+	margin-top: 5px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+	border-bottom: 2px solid var(--txt-color);
+}
+
+#tabs>button {
+	margin: 0px;
+	border-bottom: none;
+}
+
+#tabs>button.on {
+	padding-bottom: 7px;
+	margin-bottom: -2px;
+}
+
+#main {
+	box-sizing: border-box;
+	margin-bottom: 5px;
+	flex: 1 1 auto;
+	border-left: 2px solid var(--txt-color);
+	border-bottom: 2px solid var(--txt-color);
+	padding: 5px;
+}
+
+input, button {
+	background-color: var(--bg-color);
+	font-size: medium;
+	font-family: 'Courier New', Courier, monospace;
+	color: var(--txt-color);
+}
+
+button:not(.on) {
+	cursor: pointer;
+}
+
+dialog {
+	max-width: calc(100% - 24px);
+	max-height: calc(100% - 24px);
+	background-color: var(--bg-color);
+	color: var(--txt-color);
+}
+
+dialog>div {
+	min-width: 376px;
+}
+
+.box, dialog, input, button {
+	border: 2px solid var(--txt-color);
+	padding: 5px;
+}
+
+.box, input, button {
+	margin-top: 5px;
+}
+
+button:not(:first-of-type) {
+	margin-left: 5px;
+};
