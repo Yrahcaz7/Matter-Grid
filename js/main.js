@@ -6,7 +6,6 @@ let game = {
 	layer: [[0, 0]],
 	tab: TABS[0],
 	skills: {},
-	spSpent: 0,
 	skillZoom: 75,
 };
 
@@ -123,8 +122,20 @@ function enterLayer(tier, row, col) {
  * Gets the player's click power.
  */
 function getClickPower() {
-	let power = 0.1;
-	return 0.1;
+	let skillMult = 1;
+	if (hasSkill("raw", 0)) skillMult += 0.1;
+	if (hasSkill("raw", 1)) skillMult += 0.1;
+	return 0.1 * skillMult;
+};
+
+/**
+ * Gets the player's adjacent power.
+ */
+function getAdjacentPower() {
+	let skillMult = 0;
+	if (hasSkill("area", 0)) skillMult += 0.1;
+	if (hasSkill("area", 1)) skillMult += 0.1;
+	return getClickPower() * skillMult;
 };
 
 /**
@@ -143,8 +154,8 @@ function clickNode(row, col) {
  */
 function centerSkillTree() {
 	if (document.getElementById("skillTree")) {
-		document.getElementById("main").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("main").offsetWidth + 4) / 2;
-		document.getElementById("main").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("main").offsetHeight + 4) / 2;
+		document.getElementById("main").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("main").offsetWidth + 2) / 2;
+		document.getElementById("main").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("main").offsetHeight + 2) / 2;
 	};
 };
 
@@ -154,7 +165,7 @@ function centerSkillTree() {
  */
 function changeTab(index) {
 	game.tab = TABS[index];
-	update();
+	update(true);
 	if (game.tab == "Skills") centerSkillTree();
 };
 
@@ -197,31 +208,20 @@ function getMatter() {
 };
 
 /**
- * Gets the player's total skill points.
- * @param {number} matter - overrides the matter amount in the formula.
- */
-function getTotalSkillPoints(matter = getMatter()) {
-	return Math.floor(Math.sqrt(matter) / 2);
-};
-
-/**
- * Gets the amount of matter required for the next skill point.
- * @param {number} matter - overrides the matter amount in the formula.
- */
-function getNextSkillPointAt(matter = getMatter()) {
-	let amt = getTotalSkillPoints(matter) + 1;
-	return (amt * 2) ** 2;
-};
-
-/**
  * Updates the HTML of the page.
+ * @param {boolean} resetScroll - if true, resets scroll.
  */
-function update() {
+function update(resetScroll = false) {
 	let html = "";
 	while (!game.grid[game.layer.length]) {
 		let arr = getStartLayer();
 		if (game.grid.length) arr[0][0] = -1;
 		game.grid.push(arr);
+	};
+	for (const path in SKILLS) {
+		if (SKILLS.hasOwnProperty(path)) {
+			if (!game.skills[path]) game.skills[path] = [];
+		};
 	};
 	let tier = 0;
 	for (; tier < game.layer.length; tier++) {
@@ -351,6 +351,9 @@ function update() {
 			};
 			html += "<br>You have " + colorText(format(bands[tier]), tier) + " complete bands of " + colorText(getTierName(tier) + (tier > 0 && bands[tier] != 1 ? "s" : ""), tier);
 		};
+		let power = [getClickPower(), getAdjacentPower()];
+		html += "<br><br>Your click power is " + power[0].toFixed(3 - (power[0] >= 0.9995 ? 1 : 0) - (power[0] >= 9.995 ? 1 : 0) - (power[0] >= 99.95 ? 1 : 0));
+		if (power[1] > 0) html += "<br>Your adjacent power is " + power[1].toFixed(3 - (power[1] >= 0.9995 ? 1 : 0) - (power[1] >= 9.995 ? 1 : 0) - (power[1] >= 99.95 ? 1 : 0));
 	} else if (game.tab == "Skills") {
 		let maxPathLength = 0;
 		for (const path in SKILLS) {
@@ -361,15 +364,21 @@ function update() {
 		html += "<div id='skillTree' style='width: " + ((maxPathLength + 1) * 24) + "em; height: " + ((maxPathLength + 1) * 24) + "em; font-size: " + game.skillZoom + "%'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
-		let skillPoints = getTotalSkillPoints(matter);
-		html += "<div>You have " + colorText(format(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(format(skillPoints - game.spSpent)) + " are unspent.</div>";
+		let skillPoints = SP.getTotal(matter);
+		html += "<div>You have " + colorText(format(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(format(skillPoints - SP.getSpent())) + " are unspent.</div>";
 		html += "<div style='flex: 1 1 auto'></div>";
-		let next = getNextSkillPointAt(matter);
+		let next = SP.getNextAt(matter);
 		html += "<div>You have " + colorText(format(matter)) + " out of the " + colorText(format(next)) + " matter required for the next " + colorText("skill point") + ".</div></div>";
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
-					html += "<button class='skill' style='" + SKILLS[path].style(index) + "'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
+					let pos = SKILLS[path].pos(index);
+					if (hasSkill(path, index)) {
+						let color = "color-mix(in srgb, var(--txt-color), " + COLORS[index % COLORS.length] + ")";
+						html += "<button class='skill on' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em); border-color: " + color + "; color: " + color + "'><b>" + SKILLS[path].data[index].name + "</b><br><br>" + SKILLS[path].data[index].desc + "</button>";
+					} else {
+						html += "<button onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
+					};
 				};
 			};
 		};
@@ -382,11 +391,19 @@ function update() {
 		html += "<button onclick='SAVE.save()'>Save Game</button>";
 	};
 	html += "</div></div>";
-	document.body.innerHTML = html;
+	if (resetScroll) {
+		document.body.innerHTML = html;
+	} else {
+		let scrollLeft = document.getElementById("main").scrollLeft;
+		let scrollTop = document.getElementById("main").scrollTop;
+		document.body.innerHTML = html;
+		document.getElementById("main").scrollLeft = scrollLeft;
+		document.getElementById("main").scrollTop = scrollTop;
+	};
 };
 
 window.addEventListener("load", () => {
 	SAVE.load();
-	update();
+	update(true);
 	if (game.tab == "Skills") centerSkillTree();
 });

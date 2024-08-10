@@ -94,16 +94,6 @@ td>div, th>div {
 	overflow: auto;
 }
 
-#main::-webkit-scrollbar {
-	width: 5px;
-	height: 5px;
-	background-color: color-mix(in srgb, var(--txt-color), transparent 75%);
-}
-
-#main::-webkit-scrollbar-thumb {
-	background-color: color-mix(in srgb, var(--txt-color), transparent 25%);
-}
-
 #skillTree {
 	position: relative;
 }
