@@ -19,24 +19,47 @@ html, body {
 
 #grid {
 	float: inline-start;
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	align-content: center;
     justify-content: center;
-	width: 60%;
+	width: 50%;
 	height: 100%;
+	padding: 10px;
+}
+
+table {
+	width: 100%;
+	max-width: calc(100vh - 20px);
+	border-collapse: collapse;
+}
+
+td {
+	border: 2px solid var(--txt-color);
+	padding: 0px;
+}
+
+td::before {
+	content: "";
+	float: left;
+	padding-top: 100%;
+}
+
+td>div {
+	padding-top: 100%;
+	background-color: #10F01080;
 }
 
 #bar {
 	float: inline-end;
 	display: flex;
 	flex-direction: column;
-	width: 40%;
+	width: 50%;
 	height: 100%;
 }
 
 #tabs {
-	box-sizing: border-box;
 	margin-top: 5px;
 	display: flex;
 	flex-direction: row;
@@ -55,7 +78,6 @@ html, body {
 }
 
 #main {
-	box-sizing: border-box;
 	margin-bottom: 5px;
 	flex: 1 1 auto;
 	border-left: 2px solid var(--txt-color);
@@ -63,37 +85,44 @@ html, body {
 	padding: 5px;
 }
 
+hr {
+	margin: 5px 0px;
+	border: 1px solid var(--txt-color);
+}
+
 input, button {
-	background-color: var(--bg-color);
 	font-size: medium;
 	font-family: 'Courier New', Courier, monospace;
-	color: var(--txt-color);
 }
 
 button:not(.on) {
 	cursor: pointer;
 }
 
+button:not(:first-of-type) {
+	margin-left: 5px;
+};
+
 dialog {
 	max-width: calc(100% - 24px);
 	max-height: calc(100% - 24px);
-	background-color: var(--bg-color);
-	color: var(--txt-color);
 }
 
 dialog>div {
 	min-width: 376px;
 }
 
+.box {
+	overflow: auto;
+}
+
 .box, dialog, input, button {
+	background-color: var(--bg-color);
 	border: 2px solid var(--txt-color);
 	padding: 5px;
+	color: var(--txt-color);
 }
 
 .box, input, button {
 	margin-top: 5px;
 }
-
-button:not(:first-of-type) {
-	margin-left: 5px;
-};
