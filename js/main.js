@@ -1,4 +1,5 @@
 const TABS = ["Stats", "Settings"];
+const COLORS = ["#10F010", "#10F0F0", "#1010F0", "#F010F0", "#F01010", "#F0F010"];
 
 let game = {
 	grid: [],
@@ -158,11 +159,19 @@ function format(num) {
 };
 
 /**
+ * Returns a string colored with a specified tier's color in HTML format.
+ * @param {string} str - the string to color.
+ * @param {number} tier - the tier to use for coloring.
+ */
+function colorText(str, tier) {
+	return "<span style='color: color-mix(in srgb, var(--txt-color), " + COLORS[tier % COLORS.length] + ")'>" + str + "</span>";
+};
+
+/**
  * Updates the HTML of the page.
  */
 function update() {
 	let html = "";
-	html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'><table>";
 	while (!game.grid[game.layer.length]) {
 		let arr = getStartLayer();
 		if (game.grid.length) arr[0][0] = -1;
@@ -172,6 +181,7 @@ function update() {
 	for (; tier < game.layer.length; tier++) {
 		if (game.layer[tier].length) break;
 	};
+	html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'><table style='--tier-color: " + COLORS[tier % COLORS.length] + "80'>";
 	for (let col = -1; col < 12; col++) {
 		html += "<tr>";
 		for (let row = -1; row < 12; row++) {
@@ -255,7 +265,7 @@ function update() {
 		};
 		html += "You have a total of " + format(matter) + " matter, which is made out of:";
 		for (let index = 0; index < regions.length; index++) {
-			html += "<br>" + regions[index] + " " + getTierName(index) + (index > 0 && regions[index] != 1 ? "s" : "");
+			html += "<br>" + colorText(regions[index] + " " + getTierName(index) + (index > 0 && regions[index] != 1 ? "s" : ""), index);
 		};
 		html += "<br>";
 		let runningTotal = 0;
@@ -267,8 +277,33 @@ function update() {
 		for (let index = 1; index < regions.length; index++) {
 			let amt = runningTotal / (144 ** index) * 100;
 			let digits = 2 - (amt >= 9.995 ? 1 : 0) - (amt >= 99.95 ? 1 : 0);
-			html += "<br>You are ~" + amt.toFixed(digits) + "% of the way to filling a " + getTierName(index);
+			html += "<br>You are " + colorText("~" + amt.toFixed(digits) + "%", index) + " of the way to filling a " + colorText(getTierName(index), index);
 			runningTotal += regions[index] * (144 ** index);
+		};
+		let bands = [];
+		for (let tier = 0; tier < game.grid.length - 1; tier++) {
+			bands[tier] = 0;
+			for (let col = 0; col < 12; col++) {
+				let row = 0;
+				for (; row < 12; row++) {
+					if (game.grid[tier][row][col] < 1) break;
+				};
+				if (row == 12) bands[tier]++;
+			};
+			for (let row = 0; row < 12; row++) {
+				let col = 0;
+				for (; col < 12; col++) {
+					if (game.grid[tier][row][col] < 1) break;
+				};
+				if (col == 12) bands[tier]++;
+			};
+		};
+		html += "<br>";
+		for (let tier = 0; tier < bands.length; tier++) {
+			for (let index = tier + 1; index < regions.length; index++) {
+				bands[tier] += regions[index] * 24 * (144 ** (index - tier - 1));
+			};
+			html += "<br>You have " + colorText(format(bands[tier]), tier) + " complete bands of " + colorText(getTierName(tier) + (tier > 0 && bands[tier] != 1 ? "s" : ""), tier);
 		};
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";

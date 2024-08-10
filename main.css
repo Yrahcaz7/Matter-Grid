@@ -56,7 +56,7 @@ td::before, th::before {
 
 td>div, th>div {
 	padding-top: 100%;
-	background-color: #10F01080;
+	background-color: var(--tier-color);
 	line-height: 0px;
 }
 
