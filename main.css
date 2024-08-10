@@ -22,7 +22,6 @@ html, body {
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
-	align-content: center;
     justify-content: center;
 	width: 50%;
 	height: 100%;
@@ -82,8 +81,8 @@ td>div, th>div {
 }
 
 #tabs>button.on {
-	padding-bottom: 7px;
 	margin-bottom: -2px;
+	padding-bottom: 7px;
 }
 
 #main {
@@ -93,6 +92,40 @@ td>div, th>div {
 	border-bottom: 2px solid var(--txt-color);
 	padding: 5px;
 	overflow: auto;
+}
+
+#main::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+	background-color: color-mix(in srgb, var(--txt-color), transparent 75%);
+}
+
+#main::-webkit-scrollbar-thumb {
+	background-color: color-mix(in srgb, var(--txt-color), transparent 25%);
+}
+
+#skillTree {
+	position: relative;
+}
+
+#centerSkillDisplay {
+	left: calc(50% - 10em);
+	top: calc(50% - 10em);
+	display: flex;
+	flex-direction: column;
+	width: 20em;
+	height: 20em;
+}
+
+.skill {
+	margin: 0px !important;
+	position: absolute;
+	box-sizing: border-box;
+	width: 10em;
+	height: 10em;
+	border: 2px solid var(--txt-color);
+	padding: 5px;
+	font-size: inherit;
 }
 
 hr {

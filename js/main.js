@@ -1,10 +1,13 @@
-const TABS = ["Stats", "Settings"];
+const TABS = ["Stats", "Skills", "Settings"];
 const COLORS = ["#10F010", "#10F0F0", "#1010F0", "#F010F0", "#F01010", "#F0F010"];
 
 let game = {
 	grid: [],
 	layer: [[0, 0]],
 	tab: TABS[0],
+	skills: {},
+	spSpent: 0,
+	skillZoom: 75,
 };
 
 /**
@@ -136,12 +139,23 @@ function clickNode(row, col) {
 };
 
 /**
+ * Centers the skill tree display.
+ */
+function centerSkillTree() {
+	if (document.getElementById("skillTree")) {
+		document.getElementById("main").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("main").offsetWidth + 4) / 2;
+		document.getElementById("main").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("main").offsetHeight + 4) / 2;
+	};
+};
+
+/**
  * Changes the current tab to the tab of the specified index.
  * @param {number} index - the index of the tab to change to.
  */
 function changeTab(index) {
 	game.tab = TABS[index];
 	update();
+	if (game.tab == "Skills") centerSkillTree();
 };
 
 /**
@@ -163,8 +177,40 @@ function format(num) {
  * @param {string} str - the string to color.
  * @param {number} tier - the tier to use for coloring.
  */
-function colorText(str, tier) {
-	return "<span style='color: color-mix(in srgb, var(--txt-color), " + COLORS[tier % COLORS.length] + ")'>" + str + "</span>";
+function colorText(str, tier = -1) {
+	return "<span style='color: color-mix(in srgb, var(--txt-color), " + (tier >= 0 ? COLORS[tier % COLORS.length] : "#808080") + ")'>" + str + "</span>";
+};
+
+/**
+ * Gets the player's matter amount.
+ */
+function getMatter() {
+	let matter = 0;
+	for (let tier = 0; tier < game.grid.length; tier++) {
+		for (let row = 0; row < 12; row++) {
+			for (let col = 0; col < 12; col++) {
+				if (game.grid[tier][row][col] == 1) matter += 144 ** tier;
+			};
+		};
+	};
+	return matter;
+};
+
+/**
+ * Gets the player's total skill points.
+ * @param {number} matter - overrides the matter amount in the formula.
+ */
+function getTotalSkillPoints(matter = getMatter()) {
+	return Math.floor(Math.sqrt(matter) / 2);
+};
+
+/**
+ * Gets the amount of matter required for the next skill point.
+ * @param {number} matter - overrides the matter amount in the formula.
+ */
+function getNextSkillPointAt(matter = getMatter()) {
+	let amt = getTotalSkillPoints(matter) + 1;
+	return (amt * 2) ** 2;
 };
 
 /**
@@ -248,7 +294,7 @@ function update() {
 		if (TABS[index] == game.tab) html += "<button class='on'>" + TABS[index] + "</button>";
 		else html += "<button onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
 	};
-	html += "</div><div id='main'>";
+	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px; overflow: scroll'" : "") + ">";
 	if (game.tab == "Stats") {
 		let regions = [];
 		for (let tier = 0; tier < game.grid.length; tier++) {
@@ -305,6 +351,29 @@ function update() {
 			};
 			html += "<br>You have " + colorText(format(bands[tier]), tier) + " complete bands of " + colorText(getTierName(tier) + (tier > 0 && bands[tier] != 1 ? "s" : ""), tier);
 		};
+	} else if (game.tab == "Skills") {
+		let maxPathLength = 0;
+		for (const path in SKILLS) {
+			if (SKILLS.hasOwnProperty(path)) {
+				if (SKILLS[path].data.length > maxPathLength) maxPathLength = SKILLS[path].data.length;
+			};
+		};
+		html += "<div id='skillTree' style='width: " + ((maxPathLength + 1) * 24) + "em; height: " + ((maxPathLength + 1) * 24) + "em; font-size: " + game.skillZoom + "%'>";
+		html += "<div id='centerSkillDisplay' class='skill'>";
+		let matter = getMatter();
+		let skillPoints = getTotalSkillPoints(matter);
+		html += "<div>You have " + colorText(format(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(format(skillPoints - game.spSpent)) + " are unspent.</div>";
+		html += "<div style='flex: 1 1 auto'></div>";
+		let next = getNextSkillPointAt(matter);
+		html += "<div>You have " + colorText(format(matter)) + " out of the " + colorText(format(next)) + " matter required for the next " + colorText("skill point") + ".</div></div>";
+		for (const path in SKILLS) {
+			if (SKILLS.hasOwnProperty(path)) {
+				for (let index = 0; index < SKILLS[path].data.length; index++) {
+					html += "<button class='skill' style='" + SKILLS[path].style(index) + "'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
+				};
+			};
+		};
+		html += "</div></div>";
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";
 		html += "<button onclick='SAVE.wipe()'>Wipe Save</button>";
@@ -319,4 +388,5 @@ function update() {
 window.addEventListener("load", () => {
 	SAVE.load();
 	update();
+	if (game.tab == "Skills") centerSkillTree();
 });
