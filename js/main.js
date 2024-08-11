@@ -7,115 +7,7 @@ let game = {
 	tab: TABS[0],
 	skills: {},
 	skillZoom: 75,
-};
-
-/**
- * Gets the starting state of a normal layer.
- * @returns {number[][]}
- */
-function getStartLayer() {
-	let arr = [];
-	for (let row = 0; row < 12; row++) {
-		arr[row] = [];
-		for (let col = 0; col < 12; col++) {
-			arr[row][col] = 0;
-		};
-	};
-	return arr;
-};
-
-/**
- * Goes up to the specified tier.
- * @param {number} tier - the tier to go to.
- */
-function goUpToTier(tier) {
-	if (!game.layer[tier]) game.layer[tier] = [0, 0];
-	for (let index = 0; index < tier; index++) {
-		game.layer[index] = [];
-	};
-	update();
-};
-
-/**
- * Completes the layer specified by its tier.
- * @param {number} tier - the tier of the layer to complete.
- */
-function completeLayer(tier) {
-	game.grid[tier] = getStartLayer();
-	game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] = 1;
-	goUpToTier(tier + 1);
-};
-
-/**
- * Gets the name of the specified tier.
- * @param {number} tier - the tier to get the name of.
- */
-function getTierName(tier) {
-	if (tier == 0) return "stray matter";
-	else return "type-" + String.fromCharCode(64 + tier) + " region";
-};
-
-/**
- * Moves a layer specified by its containing tier to the specified coordinates after a confirmation.
- * @param {number} tier - the tier of the layer to move.
- * @param {number} row - the destination row of the movement.
- * @param {number} col - the destination column of the movement.
- */
-function moveLayer(tier, row, col) {
-	if (!document.getElementById("confirm_move")) {
-		let element = document.createElement("dialog");
-		element.id = "confirm_move";
-		element.innerHTML = "<div><div>Are you sure you want to move your incomplete " + getTierName(tier) + " to " + (col + 1) + "-" + (row + 1) + "-" + String.fromCharCode(64 + tier) + "?</div></div>";
-		document.body.append(element);
-		element.showModal();
-	};
-	if (!document.getElementById("confirm_move_no")) {
-		let element = document.createElement("button");
-		element.id = "confirm_move_no";
-		element.innerHTML = "No";
-		element.onclick = () => document.getElementById("confirm_move").remove();
-		document.getElementById("confirm_move").firstChild.append(element);
-	};
-	if (!document.getElementById("confirm_move_yes")) {
-		let element = document.createElement("button");
-		element.id = "confirm_move_yes";
-		element.innerHTML = "Yes";
-		element.onclick = () => {
-			for (let r = 0; r < 12; r++) {
-				for (let c = 0; c < 12; c++) {
-					if (r == row && c == col) {
-						game.grid[tier][r][c] = -1;
-					} else if (game.grid[tier][r][c] == -1) {
-						game.grid[tier][r][c] = 0;
-					};
-				};
-			};
-			update();
-		};
-		document.getElementById("confirm_move").firstChild.append(element);
-	};
-};
-
-/**
- * Enters the layer specified by its tier, row, and column.
- * @param {number} tier - the tier of the layer to enter.
- * @param {number} row - the row of the laye to enterr.
- * @param {number} col - the column of the layer to enter.
- */
-function enterLayer(tier, row, col) {
-	if (game.grid[tier + 1][row][col] < 1) {
-		for (let r = 0; r < 12; r++) {
-			for (let c = 0; c < 12; c++) {
-				if (game.grid[tier + 1][r][c] == -1 && !(r == row && c == col)) {
-					moveLayer(tier + 1, row, col);
-					return;
-				};
-			};
-		};
-		game.grid[tier + 1][row][col] = -1;
-	};
-	game.layer[tier] = [row, col];
-	update();
+	respecProg: 0,
 };
 
 /**
@@ -219,6 +111,7 @@ const BAND = {
 	 */
 	getEffDesc(tier, eff = BAND.getEffect(tier)) {
 		if (tier == 0) return "multiplying click power by " + format(eff) + "x";
+		if (tier == 1) return "doing nothing until a future update"
 		return "";
 	},
 };
@@ -248,29 +141,12 @@ function getAdjacentPower() {
 };
 
 /**
- * Clicks the node with the specified row and column in the active tier 0 layer.
- * @param {number} row - the row of the node to click.
- * @param {number} col - the column of the node to click.
- */
-function clickNode(row, col) {
-	game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + getClickPower()) * 1e12) / 1e12, 1);
-	let adjPow = getAdjacentPower();
-	if (adjPow > 0) {
-		if (game.grid[0][row - 1]?.length) game.grid[0][row - 1][col] = Math.min(Math.round((game.grid[0][row - 1][col] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row + 1]?.length) game.grid[0][row + 1][col] = Math.min(Math.round((game.grid[0][row + 1][col] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row][col - 1] !== undefined) game.grid[0][row][col - 1] = Math.min(Math.round((game.grid[0][row][col - 1] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row][col + 1] !== undefined) game.grid[0][row][col + 1] = Math.min(Math.round((game.grid[0][row][col + 1] + adjPow) * 1e12) / 1e12, 1);
-	};
-	update();
-};
-
-/**
  * Centers the skill tree display.
  */
 function centerSkillTree() {
-	if (document.getElementById("skillTree")) {
-		document.getElementById("main").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("main").offsetWidth + 2) / 2;
-		document.getElementById("main").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("main").offsetHeight + 2) / 2;
+	if (document.getElementById("skillContainer") && document.getElementById("skillTree")) {
+		document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("skillContainer").offsetWidth + 2) / 2;
+		document.getElementById("skillContainer").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("skillContainer").offsetHeight + 2) / 2;
 	};
 };
 
@@ -281,7 +157,6 @@ function centerSkillTree() {
 function changeTab(index) {
 	game.tab = TABS[index];
 	update(true);
-	if (game.tab == "Skills") centerSkillTree();
 };
 
 /**
@@ -383,7 +258,7 @@ function update(resetScroll = false) {
 		if (TABS[index] == game.tab) html += "<button class='on'>" + TABS[index] + "</button>";
 		else html += "<button onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
 	};
-	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px; overflow: scroll'" : "") + ">";
+	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + ">";
 	if (game.tab == "Stats") {
 		let regions = [];
 		for (let tier = 0; tier < game.grid.length; tier++) {
@@ -426,7 +301,7 @@ function update(resetScroll = false) {
 				if (SKILLS[path].data.length > maxPathLength) maxPathLength = SKILLS[path].data.length;
 			};
 		};
-		html += "<div id='skillTree' style='width: " + ((maxPathLength + 1) * 24) + "em; height: " + ((maxPathLength + 1) * 24) + "em; font-size: " + game.skillZoom + "%'>";
+		html += "<div id='skillContainer'><div id='skillTree' style='width: " + ((maxPathLength + 1) * 24) + "em; height: " + ((maxPathLength + 1) * 24) + "em; font-size: " + game.skillZoom + "%'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
@@ -448,6 +323,7 @@ function update(resetScroll = false) {
 			};
 		};
 		html += "</div></div>";
+		html += "<button id='respec' onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%);'>RESPEC</button>";
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";
 		html += "<button onclick='SAVE.wipe()'>Wipe Save</button>";
@@ -458,17 +334,18 @@ function update(resetScroll = false) {
 	html += "</div></div>";
 	if (resetScroll) {
 		document.body.innerHTML = html;
+		if (game.tab == "Skills") centerSkillTree();
 	} else {
-		let scrollLeft = document.getElementById("main").scrollLeft;
-		let scrollTop = document.getElementById("main").scrollTop;
+		let id = (document.getElementById("skillContainer") ? "skillContainer" : "main");
+		let scrollLeft = document.getElementById(id).scrollLeft;
+		let scrollTop = document.getElementById(id).scrollTop;
 		document.body.innerHTML = html;
-		document.getElementById("main").scrollLeft = scrollLeft;
-		document.getElementById("main").scrollTop = scrollTop;
+		document.getElementById(id).scrollLeft = scrollLeft;
+		document.getElementById(id).scrollTop = scrollTop;
 	};
 };
 
 window.addEventListener("load", () => {
 	SAVE.load();
 	update(true);
-	if (game.tab == "Skills") centerSkillTree();
 });

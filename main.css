@@ -92,11 +92,18 @@ td>div>div, th>div>div {
 
 #main {
 	margin-bottom: 5px;
+	position: relative;
 	flex: 1 1 auto;
 	border-left: 2px solid var(--txt-color);
 	border-bottom: 2px solid var(--txt-color);
 	padding: 5px;
 	overflow: auto;
+}
+
+#skillContainer {
+	width: 100%;
+	height: 100%;
+	overflow: scroll;
 }
 
 #skillTree {
@@ -121,6 +128,15 @@ td>div>div, th>div>div {
 	border: 2px solid var(--txt-color);
 	padding: 5px;
 	font-size: inherit;
+}
+
+#respec {
+	margin: 0px;
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	font-weight: bold;
+	color: var(--bg-color);
 }
 
 hr {

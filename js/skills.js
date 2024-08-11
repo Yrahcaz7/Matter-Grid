@@ -96,4 +96,39 @@ const SP = {
 		let amt = SP.getTotal(matter) + 1;
 		return (amt * 2) ** 2;
 	},
+	/**
+	 * Respecs the player's skill points after a confirmation.
+	 */
+	respec() {
+		if (game.respecProg < 100) {
+			game.respecProg += 10;
+			update();
+			return;
+		};
+		if (!document.getElementById("confirm_respec")) {
+			let element = document.createElement("dialog");
+			element.id = "confirm_respec";
+			element.innerHTML = "<div><div>Are you sure you want to respec?<br>You will lose all bought skills but regain all spent skill points.</div></div>";
+			document.body.append(element);
+			element.showModal();
+		};
+		if (!document.getElementById("confirm_respec_no")) {
+			let element = document.createElement("button");
+			element.id = "confirm_respec_no";
+			element.innerHTML = "No";
+			element.onclick = () => document.getElementById("confirm_respec").remove();
+			document.getElementById("confirm_respec").firstChild.append(element);
+		};
+		if (!document.getElementById("confirm_respec_yes")) {
+			let element = document.createElement("button");
+			element.id = "confirm_respec_yes";
+			element.innerHTML = "Yes";
+			element.onclick = () => {
+				game.skills = {};
+				game.respecProg = 0;
+				update(true);
+			};
+			document.getElementById("confirm_respec").firstChild.append(element);
+		};
+	},
 };
