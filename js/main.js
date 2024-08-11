@@ -119,13 +119,120 @@ function enterLayer(tier, row, col) {
 };
 
 /**
+ * Gets the amount of complete nodes in the specified tier.
+ * @param {number} tier - the tier to get the node amount from.
+ */
+function getCompleteNodes(tier) {
+	let nodes = 0;
+	for (let row = 0; row < 12; row++) {
+		for (let col = 0; col < 12; col++) {
+			if (game.grid[tier][row][col] == 1) nodes++;
+		};
+	};
+	return nodes;
+};
+
+/**
+ * Gets the player's matter amount.
+ */
+function getMatter() {
+	let matter = 0;
+	for (let tier = 0; tier < game.grid.length; tier++) {
+		matter += getCompleteNodes(tier) * (144 ** tier);
+	};
+	return matter;
+};
+
+/**
+ * Returns a whole number formatted as a string.
+ * @param {number} num - the number to format.
+ * @returns {string}
+ */
+function formatWhole(num) {
+	let str = (+num).toFixed();
+	if (str.charAt(0) == "-") return "-" + formatWhole(str.slice(1));
+	if (str.length > 9 || num >= 1e12) return (+num).toExponential(3).replace("+", "");
+	if (str.length > 6) return str.slice(0, -6) + "," + str.slice(-6, -3) + "," + str.slice(-3);
+	if (str.length > 3) return str.slice(0, -3) + "," + str.slice(-3);
+	return str;
+};
+
+/**
+ * Returns a number formatted as a string.
+ * @param {number} num - the number to format.
+ * @returns {string}
+ */
+function format(num) {
+	let places = 4 - (num >= 0.99995 ? 1 : 0) - (num >= 9.9995 ? 1 : 0) - (num >= 99.995 ? 1 : 0) - (num >= 999.95 ? 1 : 0);
+	if (places == 0) return formatWhole(num);
+	return (+num).toFixed(places);
+};
+
+const BAND = {
+	/**
+	 * Gets the player's amount of a band specified by its tier.
+	 * @param {number} tier - the tier of the band effect to get.
+	 */
+	getAmount(tier) {
+		let amt = 0;
+		for (let col = 0; col < 12; col++) {
+			let row = 0;
+			for (; row < 12; row++) {
+				if (game.grid[tier][row][col] < 1) break;
+			};
+			if (row == 12) amt++;
+		};
+		for (let row = 0; row < 12; row++) {
+			let col = 0;
+			for (; col < 12; col++) {
+				if (game.grid[tier][row][col] < 1) break;
+			};
+			if (col == 12) amt++;
+		};
+		for (let index = tier + 1; index < game.grid.length; index++) {
+			amt += getCompleteNodes(index) * 24 * (144 ** (index - tier - 1));
+		};
+		return amt;
+	},
+	/**
+	 * Checks if a band effect specified by its tier is unlocked.
+	 * @param {number} tier - the tier of the band effect to check.
+	 */
+	hasEffect(tier) {
+		if (tier == 0) return hasSkill("band", 0);
+		if (tier == 1) return hasSkill("band", 1);
+		return false;
+	},
+	/**
+	 * Gets a band effect specified by its tier.
+	 * @param {number} tier - the tier of the band effect to get.
+	 * @param {number} amt - overrides the band amount in the formula.
+	 */
+	getEffect(tier, amt = BAND.getAmount(tier)) {
+		if (tier == 0) return (1 + amt / 4) ** 0.5;
+		return 0;
+	},
+	/**
+	 * Gets a band effect description specified by its tier.
+	 * @param {number} tier - the tier of the band effect description to get.
+	 * @param {number} eff - overrides the band effect in the text.
+	 */
+	getEffDesc(tier, eff = BAND.getEffect(tier)) {
+		if (tier == 0) return "multiplying click power by " + format(eff) + "x";
+		return "";
+	},
+};
+
+/**
  * Gets the player's click power.
  */
 function getClickPower() {
 	let skillMult = 1;
 	if (hasSkill("raw", 0)) skillMult += 0.1;
 	if (hasSkill("raw", 1)) skillMult += 0.1;
-	return 0.1 * skillMult;
+	let otherMult = 1;
+	if (BAND.hasEffect(0)) otherMult += BAND.getEffect(0);
+	return 0.1 * skillMult * otherMult;
 };
 
 /**
@@ -144,8 +251,14 @@ function getAdjacentPower() {
  * @param {number} col - the column of the node to click.
  */
 function clickNode(row, col) {
-	let value = game.grid[0][row][col] + getClickPower();
-	game.grid[0][row][col] = Math.min(Math.round(value * 1e12) / 1e12, 1);
+	game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + getClickPower()) * 1e12) / 1e12, 1);
+	let adjPow = getAdjacentPower();
+	if (adjPow > 0) {
+		if (game.grid[0][row - 1]?.length) game.grid[0][row - 1][col] = Math.min(Math.round((game.grid[0][row - 1][col] + adjPow) * 1e12) / 1e12, 1);
+		if (game.grid[0][row + 1]?.length) game.grid[0][row + 1][col] = Math.min(Math.round((game.grid[0][row + 1][col] + adjPow) * 1e12) / 1e12, 1);
+		if (game.grid[0][row][col - 1] !== undefined) game.grid[0][row][col - 1] = Math.min(Math.round((game.grid[0][row][col - 1] + adjPow) * 1e12) / 1e12, 1);
+		if (game.grid[0][row][col + 1] !== undefined) game.grid[0][row][col + 1] = Math.min(Math.round((game.grid[0][row][col + 1] + adjPow) * 1e12) / 1e12, 1);
+	};
 	update();
 };
 
@@ -170,41 +283,12 @@ function changeTab(index) {
 };
 
 /**
- * Returns a whole number formatted as a string.
- * @param {number} num - the number to format.
- * @returns {string}
- */
-function format(num) {
-	let str = (+num).toFixed();
-	if (str.charAt(0) == "-") return "-" + format(str.slice(1));
-	if (str.length > 9 || num >= 1e12) return (+num).toExponential(3).replace("+", "");
-	if (str.length > 6) return str.slice(0, -6) + "," + str.slice(-6, -3) + "," + str.slice(-3);
-	if (str.length > 3) return str.slice(0, -3) + "," + str.slice(-3);
-	return str;
-};
-
-/**
  * Returns a string colored with a specified tier's color in HTML format.
  * @param {string} str - the string to color.
  * @param {number} tier - the tier to use for coloring.
  */
 function colorText(str, tier = -1) {
 	return "<span style='color: color-mix(in srgb, var(--txt-color), " + (tier >= 0 ? COLORS[tier % COLORS.length] : "#808080") + ")'>" + str + "</span>";
-};
-
-/**
- * Gets the player's matter amount.
- */
-function getMatter() {
-	let matter = 0;
-	for (let tier = 0; tier < game.grid.length; tier++) {
-		for (let row = 0; row < 12; row++) {
-			for (let col = 0; col < 12; col++) {
-				if (game.grid[tier][row][col] == 1) matter += 144 ** tier;
-			};
-		};
-	};
-	return matter;
 };
 
 /**
@@ -298,18 +382,13 @@ function update(resetScroll = false) {
 	if (game.tab == "Stats") {
 		let regions = [];
 		for (let tier = 0; tier < game.grid.length; tier++) {
-			regions[tier] = 0;
-			for (let row = 0; row < 12; row++) {
-				for (let col = 0; col < 12; col++) {
-					if (game.grid[tier][row][col] == 1) regions[tier]++;
-				};
-			};
+			regions[tier] = getCompleteNodes(tier);
 		};
 		let matter = 0;
 		for (let index = 0; index < regions.length; index++) {
 			matter += regions[index] * (144 ** index);
 		};
-		html += "You have a total of " + format(matter) + " matter, which is made out of:";
+		html += "You have a total of " + formatWhole(matter) + " matter, which is made out of:";
 		for (let index = 0; index < regions.length; index++) {
 			html += "<br>" + colorText(regions[index] + " " + getTierName(index) + (index > 0 && regions[index] != 1 ? "s" : ""), index);
 		};
@@ -323,37 +402,18 @@ function update(resetScroll = false) {
 		for (let index = 1; index < regions.length; index++) {
 			let amt = runningTotal / (144 ** index) * 100;
 			let digits = 2 - (amt >= 9.995 ? 1 : 0) - (amt >= 99.95 ? 1 : 0);
-			html += "<br>You are " + colorText("~" + amt.toFixed(digits) + "%", index) + " of the way to filling a " + colorText(getTierName(index), index);
+			html += "<br>You are " + colorText(amt.toFixed(digits) + "%", index) + " of the way to filling a " + colorText(getTierName(index), index);
 			runningTotal += regions[index] * (144 ** index);
 		};
-		let bands = [];
-		for (let tier = 0; tier < game.grid.length - 1; tier++) {
-			bands[tier] = 0;
-			for (let col = 0; col < 12; col++) {
-				let row = 0;
-				for (; row < 12; row++) {
-					if (game.grid[tier][row][col] < 1) break;
-				};
-				if (row == 12) bands[tier]++;
-			};
-			for (let row = 0; row < 12; row++) {
-				let col = 0;
-				for (; col < 12; col++) {
-					if (game.grid[tier][row][col] < 1) break;
-				};
-				if (col == 12) bands[tier]++;
-			};
-		};
 		html += "<br>";
-		for (let tier = 0; tier < bands.length; tier++) {
-			for (let index = tier + 1; index < regions.length; index++) {
-				bands[tier] += regions[index] * 24 * (144 ** (index - tier - 1));
-			};
-			html += "<br>You have " + colorText(format(bands[tier]), tier) + " complete bands of " + colorText(getTierName(tier) + (tier > 0 && bands[tier] != 1 ? "s" : ""), tier);
+		for (let tier = 0; tier < game.grid.length - 1; tier++) {
+			let amt = BAND.getAmount(tier);
+			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete bands of " + colorText(getTierName(tier) + (tier > 0 && amt != 1 ? "s" : ""), tier);
+			if (BAND.hasEffect(tier)) html += ",<br>which are " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
 		};
-		let power = [getClickPower(), getAdjacentPower()];
-		html += "<br><br>Your click power is " + power[0].toFixed(3 - (power[0] >= 0.9995 ? 1 : 0) - (power[0] >= 9.995 ? 1 : 0) - (power[0] >= 99.95 ? 1 : 0));
-		if (power[1] > 0) html += "<br>Your adjacent power is " + power[1].toFixed(3 - (power[1] >= 0.9995 ? 1 : 0) - (power[1] >= 9.995 ? 1 : 0) - (power[1] >= 99.95 ? 1 : 0));
+		html += "<br><br>Your click power is " + format(getClickPower());
+		let adjPower = getAdjacentPower();
+		if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
 	} else if (game.tab == "Skills") {
 		let maxPathLength = 0;
 		for (const path in SKILLS) {
@@ -365,10 +425,10 @@ function update(resetScroll = false) {
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
-		html += "<div>You have " + colorText(format(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(format(skillPoints - SP.getSpent())) + " are unspent.</div>";
+		html += "<div>You have " + colorText(formatWhole(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(formatWhole(skillPoints - SP.getSpent())) + " are unspent.</div>";
 		html += "<div style='flex: 1 1 auto'></div>";
 		let next = SP.getNextAt(matter);
-		html += "<div>You have " + colorText(format(matter)) + " out of the " + colorText(format(next)) + " matter required for the next " + colorText("skill point") + ".</div></div>";
+		html += "<div>You have " + colorText(formatWhole(matter)) + " out of the " + colorText(formatWhole(next)) + " matter required for the next " + colorText("skill point") + ".</div></div>";
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				for (let index = 0; index < SKILLS[path].data.length; index++) {

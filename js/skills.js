@@ -78,7 +78,7 @@ const SP = {
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getTotal(matter = getMatter()) {
-		return Math.floor(Math.sqrt(matter) / 2);
+		return Math.floor((matter ** 0.5) / 2);
 	},
 	/**
 	 * Gets the amount of matter required for the next skill point.
