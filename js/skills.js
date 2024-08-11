@@ -8,6 +8,10 @@ const SKILLS = {
 			name: "Even Stronger Clicks",
 			desc: "Adds +10% click power",
 			cost: 2,
+		}, {
+			name: "Bloated Clicks",
+			desc: "Adds +10% click power",
+			cost: 4,
 		}],
 		pos(index) {return [0 - (index * 12 + 22), -5]},
 	},
@@ -32,6 +36,10 @@ const SKILLS = {
 			name: "Stronger Link",
 			desc: "Adds +10% of click power as adjacent power",
 			cost: 2,
+		}, {
+			name: "Adjacent Advantage",
+			desc: "Adds +10% of click power as adjacent power",
+			cost: 4,
 		}],
 		pos(index) {return [index * 12 + 12, -5]},
 	},

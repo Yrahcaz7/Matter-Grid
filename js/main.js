@@ -230,6 +230,7 @@ function getClickPower() {
 	let skillMult = 1;
 	if (hasSkill("raw", 0)) skillMult += 0.1;
 	if (hasSkill("raw", 1)) skillMult += 0.1;
+	if (hasSkill("raw", 2)) skillMult += 0.1;
 	let otherMult = 1;
 	if (BAND.hasEffect(0)) otherMult += BAND.getEffect(0);
 	return 0.1 * skillMult * otherMult;
@@ -242,6 +243,7 @@ function getAdjacentPower() {
 	let skillMult = 0;
 	if (hasSkill("area", 0)) skillMult += 0.1;
 	if (hasSkill("area", 1)) skillMult += 0.1;
+	if (hasSkill("area", 2)) skillMult += 0.1;
 	return getClickPower() * skillMult;
 };
 
@@ -337,7 +339,8 @@ function update(resetScroll = false) {
 					};
 					prog /= 12;
 				};
-				if (prog > 0) html += "<th scope='col'><div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + ">&nbsp;</div></th>";
+				if (prog == 1) html += "<th scope='col'><div><div>&check;</div></div></th>";
+				else if (prog > 0) html += "<th scope='col'><div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + ">&nbsp;</div></th>";
 				else html += "<th scope='col'>&nbsp;</th>";
 			} else if (col < 0) {
 				let prog = 1;
@@ -348,7 +351,8 @@ function update(resetScroll = false) {
 					};
 					prog /= 12;
 				};
-				if (prog > 0) html += "<th><div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + ">&nbsp;</div></th>";
+				if (prog == 1) html += "<th><div><div>&check;</div></div></th>";
+				else if (prog > 0) html += "<th><div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + ">&nbsp;</div></th>";
 				else html += "<th>&nbsp;</th>";
 			} else {
 				let prog = 1;
@@ -367,7 +371,8 @@ function update(resetScroll = false) {
 					(prog < 1 ? " onclick='clickNode(" + row + ", " + col + ")' style='cursor: pointer'" : "")
 					: " onclick='enterLayer(" + (tier - 1) + ", " + row + ", " + col + ")' style='cursor: pointer'"
 				) + ">";
-				if (prog > 0) html += "<div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + "></div>";
+				if (prog == 1) html += "<div><div>&check;</div></div>";
+				else if (prog > 0) html += "<div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + "></div>";
 				html += "</td>";
 			};
 		};
