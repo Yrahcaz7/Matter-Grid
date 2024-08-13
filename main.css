@@ -127,14 +127,19 @@ td>div>div, th>div>div {
 	height: 10em;
 	border: 2px solid var(--txt-color);
 	padding: 5px;
-	font-size: inherit;
 }
 
-#respec {
-	margin: 0px;
+.skillUI {
 	position: absolute;
-	left: 10px;
-	top: 10px;
+}
+
+.skillUI>div:not(:first-of-type) {
+	margin-top: 5px;
+}
+
+.skillUI button {
+	margin: 0px;
+	background-color: #808080;
 	font-weight: bold;
 	color: var(--bg-color);
 }

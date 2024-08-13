@@ -2,15 +2,15 @@ const SKILLS = {
 	raw: {
 		data: [{
 			name: "Stronger Clicks",
-			desc: "Adds +10% click power",
+			desc: "Adds 10% click power",
 			cost: 1,
 		}, {
 			name: "Even Stronger Clicks",
-			desc: "Adds +10% click power",
+			desc: "Adds 10% click power",
 			cost: 2,
 		}, {
 			name: "Bloated Clicks",
-			desc: "Adds +10% click power",
+			desc: "Adds 10% click power",
 			cost: 4,
 		}],
 		pos(index) {return [0 - (index * 12 + 22), -5]},
@@ -30,19 +30,58 @@ const SKILLS = {
 	area: {
 		data: [{
 			name: "Larger Area",
-			desc: "Adds +10% of click power as adjacent power",
+			desc: "Adds 10% of click power as adjacent power",
 			cost: 1,
 		}, {
 			name: "Stronger Link",
-			desc: "Adds +10% of click power as adjacent power",
+			desc: "Adds 10% of click power as adjacent power",
 			cost: 2,
 		}, {
 			name: "Adjacent Advantage",
-			desc: "Adds +10% of click power as adjacent power",
+			desc: "Adds 10% of click power as adjacent power",
 			cost: 4,
 		}],
 		pos(index) {return [index * 12 + 12, -5]},
 	},
+};
+
+/**
+ * Centers the skill tree display.
+ */
+function centerSkillTree() {
+	if (document.getElementById("skillContainer") && document.getElementById("skillTree")) {
+		document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("skillContainer").offsetWidth) / 2;
+		document.getElementById("skillContainer").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("skillContainer").offsetHeight) / 2;
+	};
+};
+
+/**
+ * Zooms the skill tree display.
+ * @param {boolean} out - if true, zooms out, not in.
+ */
+function zoomSkillTree(out = false) {
+	if (document.getElementById("skillContainer")) {
+		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
+		if (out) {
+			game.skillZoom--;
+			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) / (4 / 3) ** (1 / 3) - size[0];
+			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) / (4 / 3) ** (1 / 3) - size[1];
+		} else {
+			game.skillZoom++;
+			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) * (4 / 3) ** (1 / 3) - size[0];
+			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) * (4 / 3) ** (1 / 3) - size[1];
+		};
+		update();
+	};
+};
+
+/**
+ * Resets the zoom and scroll of the skill tree display.
+ */
+function resetSkillTreeZoom() {
+	game.skillZoom = 0;
+	centerSkillTree();
+	update();
 };
 
 /**

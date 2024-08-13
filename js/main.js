@@ -6,7 +6,7 @@ let game = {
 	layer: [[0, 0]],
 	tab: TABS[0],
 	skills: {},
-	skillZoom: 75,
+	skillZoom: 0,
 	respecProg: 0,
 };
 
@@ -138,16 +138,6 @@ function getAdjacentPower() {
 	if (hasSkill("area", 1)) skillMult += 0.1;
 	if (hasSkill("area", 2)) skillMult += 0.1;
 	return getClickPower() * skillMult;
-};
-
-/**
- * Centers the skill tree display.
- */
-function centerSkillTree() {
-	if (document.getElementById("skillContainer") && document.getElementById("skillTree")) {
-		document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("skillContainer").offsetWidth + 2) / 2;
-		document.getElementById("skillContainer").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("skillContainer").offsetHeight + 2) / 2;
-	};
 };
 
 /**
@@ -301,7 +291,8 @@ function update(resetScroll = false) {
 				if (SKILLS[path].data.length > maxPathLength) maxPathLength = SKILLS[path].data.length;
 			};
 		};
-		html += "<div id='skillContainer'><div id='skillTree' style='width: " + ((maxPathLength + 1) * 24) + "em; height: " + ((maxPathLength + 1) * 24) + "em; font-size: " + game.skillZoom + "%'>";
+		let scale = Math.round((0.75 * (4 / 3) ** (game.skillZoom / 3) * 1e12)) / 1e12;
+		html += "<div id='skillContainer'><div id='skillTree' style='width: " + ((maxPathLength + 1) * 24 * scale) + "em; height: " + ((maxPathLength + 1) * 24 * scale) + "em; transform: scale(" + scale + ", " + scale + ")'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
@@ -323,7 +314,13 @@ function update(resetScroll = false) {
 			};
 		};
 		html += "</div></div>";
-		html += "<button id='respec' onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%);'>RESPEC</button>";
+		html += "<div class='skillUI' style='left: 10px; top: 10px'>";
+		html += "<button onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%)'>RESPEC</button>";
+		html += "</div><div class='skillUI' style='right: 10px; top: 10px'><div>";
+		html += "<button onclick='zoomSkillTree()'>ZOOM IN</button>";
+		html += "<button onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
+		html += "<button onclick='resetSkillTreeZoom()'>RESET ZOOM/SCROLL</button>";
+		html += "</div></div>";
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";
 		html += "<button onclick='SAVE.wipe()'>Wipe Save</button>";
