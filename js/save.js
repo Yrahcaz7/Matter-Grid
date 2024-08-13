@@ -8,27 +8,29 @@ const SAVE = {
 		if (!document.getElementById("confirm_wipe")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_wipe";
-			element.innerHTML = "<div><div>Are you really sure you want to wipe your save?<br>This will reset EVERYTHING!</div></div>";
+			element.innerHTML = "<div>Are you really sure you want to wipe your save?<br>This will reset EVERYTHING!</div>";
 			document.body.append(element);
 			element.showModal();
 		};
 		if (!document.getElementById("confirm_wipe_no")) {
 			let element = document.createElement("button");
 			element.id = "confirm_wipe_no";
+			element.tabIndex = -1;
 			element.innerHTML = "No";
 			element.onclick = () => document.getElementById("confirm_wipe").remove();
-			document.getElementById("confirm_wipe").firstChild.append(element);
+			document.getElementById("confirm_wipe").append(element);
 		};
 		if (!document.getElementById("confirm_wipe_yes")) {
 			let element = document.createElement("button");
 			element.id = "confirm_wipe_yes";
+			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
 				wiping = true;
 				localStorage.removeItem(SAVE.ID);
 				location.reload();
 			};
-			document.getElementById("confirm_wipe").firstChild.append(element);
+			document.getElementById("confirm_wipe").append(element);
 		};
 	},
 	/**
@@ -39,17 +41,18 @@ const SAVE = {
 			let element = document.createElement("dialog");
 			element.id = "confirm_export";
 			let item = localStorage.getItem(SAVE.ID);
-			if (item) element.innerHTML = "<div><div>Your save is shown below.</div><div class='box'>" + item + "</div></div>";
-			else element.innerHTML = "<div><div>Your have no saved data to export.</div></div>";
+			if (item) element.innerHTML = "<div>Your save is shown below.</div><div class='box'>" + item + "</div>";
+			else element.innerHTML = "<div>Your have no saved data to export.</div>";
 			document.body.append(element);
 			element.showModal();
 		};
 		if (!document.getElementById("confirm_export_no")) {
 			let element = document.createElement("button");
 			element.id = "confirm_export_no";
+			element.tabIndex = -1;
 			element.innerHTML = "Close";
 			element.onclick = () => document.getElementById("confirm_export").remove();
-			document.getElementById("confirm_export").firstChild.append(element);
+			document.getElementById("confirm_export").append(element);
 		};
 	},
 	/**
@@ -59,20 +62,22 @@ const SAVE = {
 		if (!document.getElementById("confirm_import")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_import";
-			element.innerHTML = "<div><div>Paste your save in the field below.<br>WARNING: this will wipe your current save.</div><input type='text' id='confirm_import_input' size='30' autocomplete='off' class='box'><br></div>";
+			element.innerHTML = "<div>Paste your save in the field below.<br>WARNING: this will wipe your current save.</div><input type='text' id='confirm_import_input' size='20' autocomplete='off' class='box'><br>";
 			document.body.append(element);
 			element.showModal();
 		};
 		if (!document.getElementById("confirm_import_no")) {
 			let element = document.createElement("button");
 			element.id = "confirm_import_no";
+			element.tabIndex = -1;
 			element.innerHTML = "Cancel";
 			element.onclick = () => document.getElementById("confirm_import").remove();
-			document.getElementById("confirm_import").firstChild.append(element);
+			document.getElementById("confirm_import").append(element);
 		};
 		if (!document.getElementById("confirm_import_yes")) {
 			let element = document.createElement("button");
 			element.id = "confirm_import_yes";
+			element.tabIndex = -1;
 			element.innerHTML = "Import";
 			element.onclick = () => {
 				let item = document.getElementById("confirm_import_input").value;
@@ -92,7 +97,7 @@ const SAVE = {
 					console.warn('Importing an empty save was attempted.');
 				};
 			};
-			document.getElementById("confirm_import").firstChild.append(element);
+			document.getElementById("confirm_import").append(element);
 		};
 	},
 	/**

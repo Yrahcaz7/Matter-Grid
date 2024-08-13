@@ -54,20 +54,22 @@ function moveLayer(tier, row, col) {
 	if (!document.getElementById("confirm_move")) {
 		let element = document.createElement("dialog");
 		element.id = "confirm_move";
-		element.innerHTML = "<div><div>Are you sure you want to move your incomplete " + getTierName(tier) + " to " + (col + 1) + "-" + (row + 1) + "-" + String.fromCharCode(64 + tier) + "?</div></div>";
+		element.innerHTML = "<div>Are you sure you want to move your incomplete " + getTierName(tier) + " to " + (col + 1) + "-" + (row + 1) + "-" + String.fromCharCode(64 + tier) + "?</div>";
 		document.body.append(element);
 		element.showModal();
 	};
 	if (!document.getElementById("confirm_move_no")) {
 		let element = document.createElement("button");
 		element.id = "confirm_move_no";
+		element.tabIndex = -1;
 		element.innerHTML = "No";
 		element.onclick = () => document.getElementById("confirm_move").remove();
-		document.getElementById("confirm_move").firstChild.append(element);
+		document.getElementById("confirm_move").append(element);
 	};
 	if (!document.getElementById("confirm_move_yes")) {
 		let element = document.createElement("button");
 		element.id = "confirm_move_yes";
+		element.tabIndex = -1;
 		element.innerHTML = "Yes";
 		element.onclick = () => {
 			for (let r = 0; r < 12; r++) {
@@ -81,7 +83,7 @@ function moveLayer(tier, row, col) {
 			};
 			update();
 		};
-		document.getElementById("confirm_move").firstChild.append(element);
+		document.getElementById("confirm_move").append(element);
 	};
 };
 

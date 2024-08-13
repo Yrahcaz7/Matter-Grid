@@ -7,9 +7,13 @@
 	overscroll-behavior: none;
 }
 
+html {
+	overflow: hidden;
+	overflow: clip;
+}
+
 html, body {
-	margin: 0px;
-	min-width: 400px;
+	margin: 0;
 	height: 100%;
 	background-color: var(--bg-color);
 	text-align: center;
@@ -44,7 +48,7 @@ th {
 
 td, th {
 	border: 2px solid var(--txt-color);
-	padding: 0px;
+	padding: 0;
 	font-size: calc(clamp(11px, 2.75vw, 5.5vh) - 2px);
 }
 
@@ -57,7 +61,7 @@ td::before, th::before {
 td>div, th>div {
 	padding-top: 100%;
 	background-color: var(--tier-color);
-	line-height: 0px;
+	line-height: 0;
 }
 
 td>div>div, th>div>div {
@@ -65,11 +69,15 @@ td>div>div, th>div>div {
 }
 
 #bar {
-	float: inline-end;
+	float: inline-start;
 	display: flex;
 	flex-direction: column;
 	width: 50%;
 	height: 100%;
+}
+
+#bar>div {
+	border-bottom: 2px solid var(--txt-color);
 }
 
 #tabs {
@@ -77,11 +85,10 @@ td>div>div, th>div>div {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-evenly;
-	border-bottom: 2px solid var(--txt-color);
 }
 
 #tabs>button {
-	margin: 0px;
+	margin: 0;
 	border-bottom: none;
 }
 
@@ -91,11 +98,9 @@ td>div>div, th>div>div {
 }
 
 #main {
-	margin-bottom: 5px;
 	position: relative;
 	flex: 1 1 auto;
 	border-left: 2px solid var(--txt-color);
-	border-bottom: 2px solid var(--txt-color);
 	padding: 5px;
 	overflow: auto;
 }
@@ -120,7 +125,7 @@ td>div>div, th>div>div {
 }
 
 .skill {
-	margin: 0px !important;
+	margin: 0 !important;
 	position: absolute;
 	box-sizing: border-box;
 	width: 10em;
@@ -131,21 +136,19 @@ td>div>div, th>div>div {
 
 .skillUI {
 	position: absolute;
-}
-
-.skillUI>div:not(:first-of-type) {
-	margin-top: 5px;
+	padding: 5px 10px;
+	pointer-events: none;
 }
 
 .skillUI button {
-	margin: 0px;
 	background-color: #808080;
 	font-weight: bold;
 	color: var(--bg-color);
+	pointer-events: auto;
 }
 
 hr {
-	margin: 5px 0px;
+	margin: 5px 0;
 	border: 1px solid var(--txt-color);
 }
 
@@ -160,15 +163,21 @@ button:not(.on) {
 
 button:not(:first-of-type) {
 	margin-left: 5px;
-};
+}
+
+#barToggle {
+	margin-top: -0.2em;
+	margin-bottom: 5px;
+	border-left: 2px solid var(--txt-color);
+	padding-left: 0.3em;
+	text-align: left;
+	font-size: xx-large;
+	cursor: pointer;
+}
 
 dialog {
 	max-width: calc(100% - 24px);
 	max-height: calc(100% - 24px);
-}
-
-dialog>div {
-	min-width: 376px;
 }
 
 .box {
@@ -180,8 +189,19 @@ dialog>div {
 	border: 2px solid var(--txt-color);
 	padding: 5px;
 	color: var(--txt-color);
+	outline: none;
 }
 
 .box, input, button {
 	margin-top: 5px;
+}
+
+@media screen and (max-width: 600px) {
+	#grid {
+		margin-left: -100%;
+	}
+	#bar {
+		margin-left: 5px;
+		width: calc(100% - 5px);
+	}
 }

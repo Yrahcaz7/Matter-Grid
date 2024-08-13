@@ -80,8 +80,35 @@ function zoomSkillTree(out = false) {
  */
 function resetSkillTreeZoom() {
 	game.skillZoom = 0;
-	centerSkillTree();
-	update();
+	update(true);
+};
+
+/**
+ * Adjusts the skill UI appropriately.
+ */
+function adjustSkillUI() {
+	if (document.getElementById("skillContainer")) {
+		let skillUI = document.getElementsByClassName("skillUI");
+		if (skillUI.length) {
+			let width = 0;
+			for (let index = 0; index < skillUI.length; index++) {
+				width += skillUI[index].offsetWidth;
+			};
+			if (document.getElementById("skillContainer").offsetWidth + 15 < width) {
+				let respec = skillUI[0].children[0];
+				if (respec) {
+					skillUI[1].innerHTML += "<div class='skillUI' style='right: 10px; padding: 0'>" + respec.outerHTML + "</div>";
+					skillUI[0].removeChild(respec);
+				};
+			} else {
+				let respec = skillUI[1].children[2];
+				if (respec) {
+					skillUI[0].innerHTML += respec.innerHTML;
+					skillUI[1].removeChild(respec);
+				};
+			};
+		};
+	};
 };
 
 /**
@@ -147,27 +174,31 @@ const SP = {
 		if (!document.getElementById("confirm_respec")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_respec";
-			element.innerHTML = "<div><div>Are you sure you want to respec?<br>You will lose all bought skills but regain all spent skill points.</div></div>";
+			element.innerHTML = "<div>Are you sure you want to respec?<br>You will lose all bought skills but regain all spent skill points.</div>";
 			document.body.append(element);
 			element.showModal();
 		};
 		if (!document.getElementById("confirm_respec_no")) {
 			let element = document.createElement("button");
 			element.id = "confirm_respec_no";
+			element.tabIndex = -1;
 			element.innerHTML = "No";
 			element.onclick = () => document.getElementById("confirm_respec").remove();
-			document.getElementById("confirm_respec").firstChild.append(element);
+			document.getElementById("confirm_respec").append(element);
 		};
 		if (!document.getElementById("confirm_respec_yes")) {
 			let element = document.createElement("button");
 			element.id = "confirm_respec_yes";
+			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
 				game.skills = {};
 				game.respecProg = 0;
 				update(true);
 			};
-			document.getElementById("confirm_respec").firstChild.append(element);
+			document.getElementById("confirm_respec").append(element);
 		};
 	},
 };
+
+window.addEventListener("resize", adjustSkillUI);

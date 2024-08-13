@@ -159,6 +159,24 @@ function colorText(str, tier = -1) {
 };
 
 /**
+ * Toggles whether the right bar is collapsed.
+ */
+function toggleBar() {
+	if (!document.getElementById("fullGridCSS")) {
+		let element = document.createElement("link");
+		element.id = "fullGridCSS";
+		element.rel = "stylesheet";
+		element.type = "text/css";
+		element.href = "fullGrid.css";
+		document.head.appendChild(element);
+		document.getElementById("barToggle").innerHTML = "&larr;";
+	} else {
+		document.getElementById("fullGridCSS").remove();
+		document.getElementById("barToggle").innerHTML = "&rarr;";
+	};
+};
+
+/**
  * Updates the HTML of the page.
  * @param {boolean} resetScroll - if true, resets scroll.
  */
@@ -245,8 +263,8 @@ function update(resetScroll = false) {
 	};
 	html += "</table></div><div id='bar'><div id='tabs'>";
 	for (let index = 0; index < TABS.length; index++) {
-		if (TABS[index] == game.tab) html += "<button class='on'>" + TABS[index] + "</button>";
-		else html += "<button onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
+		if (TABS[index] == game.tab) html += "<button tabindex='-1' class='on'>" + TABS[index] + "</button>";
+		else html += "<button tabindex='-1' onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
 	};
 	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + ">";
 	if (game.tab == "Stats") {
@@ -306,29 +324,29 @@ function update(resetScroll = false) {
 					let pos = SKILLS[path].pos(index);
 					if (hasSkill(path, index)) {
 						let color = "color-mix(in srgb, var(--txt-color), " + COLORS[index % COLORS.length] + ")";
-						html += "<button class='skill on' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em); border-color: " + color + "; color: " + color + "'><b>" + SKILLS[path].data[index].name + "</b><br><br>" + SKILLS[path].data[index].desc + "</button>";
+						html += "<button tabindex='-1' class='skill on' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em); border-color: " + color + "; color: " + color + "'><b>" + SKILLS[path].data[index].name + "</b><br><br>" + SKILLS[path].data[index].desc + "</button>";
 					} else {
-						html += "<button onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
+						html += "<button tabindex='-1' onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
 					};
 				};
 			};
 		};
 		html += "</div></div>";
-		html += "<div class='skillUI' style='left: 10px; top: 10px'>";
-		html += "<button onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%)'>RESPEC</button>";
-		html += "</div><div class='skillUI' style='right: 10px; top: 10px'><div>";
-		html += "<button onclick='zoomSkillTree()'>ZOOM IN</button>";
-		html += "<button onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
-		html += "<button onclick='resetSkillTreeZoom()'>RESET ZOOM/SCROLL</button>";
+		html += "<div class='skillUI' style='left: 0; top: 0'>";
+		html += "<button tabindex='-1' onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%)'>RESPEC</button>";
+		html += "</div><div class='skillUI' style='right: 0; top: 0; text-align: right'><div>";
+		html += "<button tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
+		html += "<button tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
+		html += "<button tabindex='-1' onclick='resetSkillTreeZoom()'>RESET ZOOM/SCROLL</button>";
 		html += "</div></div>";
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";
-		html += "<button onclick='SAVE.wipe()'>Wipe Save</button>";
-		html += "<button onclick='SAVE.export()'>Export Save</button>";
-		html += "<button onclick='SAVE.import()'>Import Save</button>";
-		html += "<button onclick='SAVE.save()'>Save Game</button>";
+		html += "<button tabindex='-1' onclick='SAVE.wipe()'>Wipe Save</button>";
+		html += "<button tabindex='-1' onclick='SAVE.export()'>Export Save</button>";
+		html += "<button tabindex='-1' onclick='SAVE.import()'>Import Save</button>";
+		html += "<button tabindex='-1' onclick='SAVE.save()'>Save Game</button>";
 	};
-	html += "</div></div>";
+	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
 	if (resetScroll) {
 		document.body.innerHTML = html;
 		if (game.tab == "Skills") centerSkillTree();
@@ -340,6 +358,7 @@ function update(resetScroll = false) {
 		document.getElementById(id).scrollLeft = scrollLeft;
 		document.getElementById(id).scrollTop = scrollTop;
 	};
+	adjustSkillUI();
 };
 
 window.addEventListener("load", () => {

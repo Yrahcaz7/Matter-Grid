@@ -1,0 +1,30 @@
+body {
+	width: 150%;
+}
+
+#grid {
+	width: calc(66.66% - 2.5em) !important;
+}
+
+td, th {
+	font-size: calc(clamp(11px, 5.5vw, 5.5vh) - 2px) !important;
+}
+
+#bar {
+	width: 33.33% !important;
+}
+
+@media screen and (max-width: 600px) {
+	body {
+		width: 200%;
+	}
+	#grid {
+		width: calc(50% - 2.5em) !important;
+	}
+	#bar {
+		width: 50% !important;
+	}
+	#grid, #bar {
+		margin-left: 0;
+	}
+}
