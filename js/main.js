@@ -7,6 +7,7 @@ let game = {
 	skills: {},
 	skillZoom: 0,
 	respecProg: 0,
+	darkMode: true,
 };
 
 /**
@@ -40,6 +41,20 @@ function getAdjacentPower() {
 function changeTab(index) {
 	game.tab = TABS[index];
 	update(true);
+};
+
+/**
+ * Toggles the mode from light to dark or vice versa.
+ */
+function toggleDarkMode() {
+	if (game.darkMode) {
+		document.documentElement.style.setProperty("--bg-color", "#F0F0F0");
+		document.documentElement.style.setProperty("--txt-color", "#101010");
+	} else {
+		document.documentElement.style.setProperty("--bg-color", "#101010");
+		document.documentElement.style.setProperty("--txt-color", "#F0F0F0");
+	};
+	game.darkMode = !game.darkMode;
 };
 
 /**
@@ -173,8 +188,7 @@ function update(resetScroll = false) {
 		};
 		for (let index = 1; index < regions.length; index++) {
 			let amt = runningTotal / (144 ** index) * 100;
-			let digits = 2 - (amt >= 9.995 ? 1 : 0) - (amt >= 99.95 ? 1 : 0);
-			html += "<br>You are " + colorText(amt.toFixed(digits) + "%", index) + " of the way to filling a " + colorText(getTierName(index), index);
+			html += "<br>You are " + colorText(formatPercent(amt), index) + " of the way to filling a " + colorText(getTierName(index), index);
 			runningTotal += regions[index] * (144 ** index);
 		};
 		html += "<br>";
@@ -192,9 +206,10 @@ function update(resetScroll = false) {
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
 		html += "<div>You have " + colorText(formatWhole(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(formatWhole(skillPoints - SP.getSpent())) + " are unspent.</div>";
-		html += "<div style='flex: 1 1 auto'></div>";
+		html += "<div style='flex: 1 1 auto; padding: 5px'></div>";
 		let next = SP.getNextAt(matter);
-		html += "<div>You have " + colorText(formatWhole(matter)) + " out of the " + colorText(formatWhole(next)) + " matter required for the next " + colorText("skill point") + ".</div></div>";
+		let percentage = Math.round(matter / next * 100 * 1e12) / 1e12;
+		html += "<div style='background: linear-gradient(to right, var(--txt-color) 0% " + percentage + "%, #808080 " + percentage + "% 100%); color: var(--bg-color)'>Progress for next SP:<br>" + formatWhole(matter) + "/" + formatWhole(next) + " matter (" + formatPercent(percentage) + ")</div></div>";
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
@@ -222,6 +237,8 @@ function update(resetScroll = false) {
 		html += "<button tabindex='-1' onclick='SAVE.export()'>Export Save</button>";
 		html += "<button tabindex='-1' onclick='SAVE.import()'>Import Save</button>";
 		html += "<button tabindex='-1' onclick='SAVE.save()'>Save Game</button>";
+		html += "<hr style='margin-top: 10px'>Visual Settings<hr>";
+		html += "<button tabindex='-1' onclick='toggleDarkMode()'>Toggle Dark Mode</button>";
 	};
 	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
 	if (resetScroll) {

@@ -113,7 +113,11 @@ const SAVE = {
 	 */
 	load() {
 		let item = localStorage.getItem(SAVE.ID);
-		if (item) Object.assign(game, JSON.parse(atob(item)));
+		if (item) {
+			let obj = JSON.parse(atob(item));
+			if (!obj.darkMode) toggleDarkMode();
+			Object.assign(game, obj);
+		};
 	},
 	ID: "Yrahcaz7/Matter-Grid/save",
 };
