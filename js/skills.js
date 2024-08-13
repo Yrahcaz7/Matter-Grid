@@ -46,6 +46,21 @@ const SKILLS = {
 };
 
 /**
+ * Gets the dynamic style of the skill tree.
+ */
+function getSkillTreeStyle() {
+	let maxPathLength = 0;
+	for (const path in SKILLS) {
+		if (SKILLS.hasOwnProperty(path)) {
+			if (SKILLS[path].data.length > maxPathLength) maxPathLength = SKILLS[path].data.length;
+		};
+	};
+	let scale = Math.round((0.75 * (4 / 3) ** (game.skillZoom / 3) * 1e12)) / 1e12;
+	let size = (maxPathLength + 1) * 24 * scale;
+	return "width: " + size + "em; height: " + size + "em; transform: scale(" + scale + ", " + scale + ")";
+};
+
+/**
  * Centers the skill tree display.
  */
 function centerSkillTree() {
@@ -64,14 +79,15 @@ function zoomSkillTree(out = false) {
 		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
 		if (out) {
 			game.skillZoom--;
+			document.getElementById("skillTree").style = getSkillTreeStyle();
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) / (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) / (4 / 3) ** (1 / 3) - size[1];
 		} else {
 			game.skillZoom++;
+			document.getElementById("skillTree").style = getSkillTreeStyle();
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) * (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) * (4 / 3) ** (1 / 3) - size[1];
 		};
-		update();
 	};
 };
 
@@ -80,7 +96,8 @@ function zoomSkillTree(out = false) {
  */
 function resetSkillTreeZoom() {
 	game.skillZoom = 0;
-	update(true);
+	document.getElementById("skillTree").style = getSkillTreeStyle();
+	centerSkillTree();
 };
 
 /**

@@ -1,5 +1,4 @@
 const TABS = ["Stats", "Skills", "Settings"];
-const COLORS = ["#10F010", "#10F0F0", "#1010F0", "#F010F0", "#F01010", "#F0F010"];
 
 let game = {
 	grid: [],
@@ -8,112 +7,6 @@ let game = {
 	skills: {},
 	skillZoom: 0,
 	respecProg: 0,
-};
-
-/**
- * Gets the amount of complete nodes in the specified tier.
- * @param {number} tier - the tier to get the node amount from.
- */
-function getCompleteNodes(tier) {
-	let nodes = 0;
-	for (let row = 0; row < 12; row++) {
-		for (let col = 0; col < 12; col++) {
-			if (game.grid[tier][row][col] == 1) nodes++;
-		};
-	};
-	return nodes;
-};
-
-/**
- * Gets the player's matter amount.
- */
-function getMatter() {
-	let matter = 0;
-	for (let tier = 0; tier < game.grid.length; tier++) {
-		matter += getCompleteNodes(tier) * (144 ** tier);
-	};
-	return matter;
-};
-
-/**
- * Returns a whole number formatted as a string.
- * @param {number} num - the number to format.
- * @returns {string}
- */
-function formatWhole(num) {
-	let str = (+num).toFixed();
-	if (str.charAt(0) == "-") return "-" + formatWhole(str.slice(1));
-	if (str.length > 9 || num >= 1e12) return (+num).toExponential(3).replace("+", "");
-	if (str.length > 6) return str.slice(0, -6) + "," + str.slice(-6, -3) + "," + str.slice(-3);
-	if (str.length > 3) return str.slice(0, -3) + "," + str.slice(-3);
-	return str;
-};
-
-/**
- * Returns a number formatted as a string.
- * @param {number} num - the number to format.
- * @returns {string}
- */
-function format(num) {
-	let places = 4 - (num >= 0.99995 ? 1 : 0) - (num >= 9.9995 ? 1 : 0) - (num >= 99.995 ? 1 : 0) - (num >= 999.95 ? 1 : 0);
-	if (places == 0) return formatWhole(num);
-	return (+num).toFixed(places);
-};
-
-const BAND = {
-	/**
-	 * Gets the player's amount of a band specified by its tier.
-	 * @param {number} tier - the tier of the band effect to get.
-	 */
-	getAmount(tier) {
-		let amt = 0;
-		for (let col = 0; col < 12; col++) {
-			let row = 0;
-			for (; row < 12; row++) {
-				if (game.grid[tier][row][col] < 1) break;
-			};
-			if (row == 12) amt++;
-		};
-		for (let row = 0; row < 12; row++) {
-			let col = 0;
-			for (; col < 12; col++) {
-				if (game.grid[tier][row][col] < 1) break;
-			};
-			if (col == 12) amt++;
-		};
-		for (let index = tier + 1; index < game.grid.length; index++) {
-			amt += getCompleteNodes(index) * 24 * (144 ** (index - tier - 1));
-		};
-		return amt;
-	},
-	/**
-	 * Checks if a band effect specified by its tier is unlocked.
-	 * @param {number} tier - the tier of the band effect to check.
-	 */
-	hasEffect(tier) {
-		if (tier == 0) return hasSkill("band", 0);
-		if (tier == 1) return hasSkill("band", 1);
-		return false;
-	},
-	/**
-	 * Gets a band effect specified by its tier.
-	 * @param {number} tier - the tier of the band effect to get.
-	 * @param {number} amt - overrides the band amount in the formula.
-	 */
-	getEffect(tier, amt = BAND.getAmount(tier)) {
-		if (tier == 0) return (1 + amt / 4) ** 0.5;
-		return 0;
-	},
-	/**
-	 * Gets a band effect description specified by its tier.
-	 * @param {number} tier - the tier of the band effect description to get.
-	 * @param {number} eff - overrides the band effect in the text.
-	 */
-	getEffDesc(tier, eff = BAND.getEffect(tier)) {
-		if (tier == 0) return "multiplying click power by " + format(eff) + "x";
-		if (tier == 1) return "doing nothing until a future update"
-		return "";
-	},
 };
 
 /**
@@ -147,15 +40,6 @@ function getAdjacentPower() {
 function changeTab(index) {
 	game.tab = TABS[index];
 	update(true);
-};
-
-/**
- * Returns a string colored with a specified tier's color in HTML format.
- * @param {string} str - the string to color.
- * @param {number} tier - the tier to use for coloring.
- */
-function colorText(str, tier = -1) {
-	return "<span style='color: color-mix(in srgb, var(--txt-color), " + (tier >= 0 ? COLORS[tier % COLORS.length] : "#808080") + ")'>" + str + "</span>";
 };
 
 /**
@@ -303,14 +187,7 @@ function update(resetScroll = false) {
 		let adjPower = getAdjacentPower();
 		if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
 	} else if (game.tab == "Skills") {
-		let maxPathLength = 0;
-		for (const path in SKILLS) {
-			if (SKILLS.hasOwnProperty(path)) {
-				if (SKILLS[path].data.length > maxPathLength) maxPathLength = SKILLS[path].data.length;
-			};
-		};
-		let scale = Math.round((0.75 * (4 / 3) ** (game.skillZoom / 3) * 1e12)) / 1e12;
-		html += "<div id='skillContainer'><div id='skillTree' style='width: " + ((maxPathLength + 1) * 24 * scale) + "em; height: " + ((maxPathLength + 1) * 24 * scale) + "em; transform: scale(" + scale + ", " + scale + ")'>";
+		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
