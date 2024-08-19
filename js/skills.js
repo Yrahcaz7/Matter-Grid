@@ -94,16 +94,20 @@ function zoomSkillTree(out = false) {
 	if (document.getElementById("skillContainer")) {
 		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
 		if (out) {
+			if (game.skillZoom <= -20) return;
 			game.skillZoom--;
 			document.getElementById("skillTree").style = getSkillTreeStyle();
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) / (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) / (4 / 3) ** (1 / 3) - size[1];
 		} else {
+			if (game.skillZoom >= 20) return;
 			game.skillZoom++;
 			document.getElementById("skillTree").style = getSkillTreeStyle();
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) * (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) * (4 / 3) ** (1 / 3) - size[1];
 		};
+		document.getElementById("zoomOut").className = (game.skillZoom <= -20 ? "on" : "");
+		document.getElementById("zoomIn").className = (game.skillZoom >= 20 ? "on" : "");
 	};
 };
 
@@ -114,6 +118,8 @@ function resetSkillTreeZoom() {
 	game.skillZoom = 0;
 	document.getElementById("skillTree").style = getSkillTreeStyle();
 	centerSkillTree();
+	document.getElementById("zoomOut").className = "";
+	document.getElementById("zoomIn").className = "";
 };
 
 /**

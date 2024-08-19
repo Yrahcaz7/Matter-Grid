@@ -153,6 +153,12 @@ td>div>div, th>div>div {
 	pointer-events: auto;
 }
 
+.skillUI button.on {
+	background-color: var(--bg-color);
+	border-color: #808080;
+	color: #808080;
+}
+
 hr {
 	margin: 5px 0;
 	border: 1px solid var(--txt-color);

@@ -66,7 +66,7 @@ function toggleBar() {
 		element.id = "fullGridCSS";
 		element.rel = "stylesheet";
 		element.type = "text/css";
-		element.href = "fullGrid.css";
+		element.href = "css/fullGrid.css";
 		document.head.appendChild(element);
 		document.getElementById("barToggle").innerHTML = "&larr;";
 	} else {
@@ -235,8 +235,8 @@ function update(resetScroll = false) {
 		html += "<div class='skillUI' style='left: 0; top: 0'>";
 		html += "<button tabindex='-1' onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%)'>RESPEC</button>";
 		html += "</div><div class='skillUI' style='right: 0; top: 0; text-align: right'><div>";
-		html += "<button tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
-		html += "<button tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
+		html += "<button id='zoomIn'" + (game.skillZoom >= 20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
+		html += "<button id='zoomOut'" + (game.skillZoom <= -20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
 		html += "<button tabindex='-1' onclick='resetSkillTreeZoom()'>RESET ZOOM/SCROLL</button>";
 		html += "</div></div>";
 	} else if (game.tab == "Settings") {
