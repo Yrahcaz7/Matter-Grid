@@ -213,6 +213,14 @@ function update(resetScroll = false) {
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
+					let line = SKILLS[path].line(index);
+					html += "<div class='line' style='left: calc(50% + " + line[0] + "em - 1px); top: calc(50% + " + line[1] + "em - 1px)" + (line[2] ? "; transform: rotate(" + line[2] + "deg)" : "") + "'></div>";
+				};
+			};
+		};
+		for (const path in SKILLS) {
+			if (SKILLS.hasOwnProperty(path)) {
+				for (let index = 0; index < SKILLS[path].data.length; index++) {
 					let pos = SKILLS[path].pos(index);
 					if (hasSkill(path, index)) {
 						let color = "color-mix(in srgb, var(--txt-color), " + COLORS[index % COLORS.length] + ")";

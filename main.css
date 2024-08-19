@@ -134,6 +134,12 @@ td>div>div, th>div>div {
 	padding: 5px;
 }
 
+.line {
+	position: absolute;
+	width: 2em;
+	border: 1px solid var(--txt-color);
+}
+
 .skillUI {
 	position: absolute;
 	padding: 5px 10px;
