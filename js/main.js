@@ -206,7 +206,46 @@ function update(resetScroll = false) {
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
 		html += "<div>You have " + colorText(formatWhole(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(formatWhole(skillPoints - SP.getSpent())) + " are unspent.</div>";
-		html += "<div style='flex: 1 1 auto; padding: 5px'></div>";
+		let bandSkills = getSkillsOnPath("band");
+		html += "<svg viewBox='0 0 160 120' style='flex: 1 1 auto; fill: none; stroke: " + (bandSkills >= 1 ? "color-mix(in srgb, var(--txt-color), " + COLORS[(bandSkills - 1) % COLORS.length] + ")" : "var(--txt-color)") + "'>";
+		let rawSkills = getSkillsOnPath("raw");
+		html += "<circle cx='80' cy='60' r='25'/>";
+		if (rawSkills >= 1) html += "<circle cx='80' cy='60' r='10'/>";
+		if (rawSkills >= 2) {
+			html += "<line x1='73' y1='53' x2='62' y2='42'/>";
+			html += "<line x1='87' y1='53' x2='98' y2='42'/>";
+			html += "<line x1='73' y1='67' x2='62' y2='78'/>";
+			html += "<line x1='87' y1='67' x2='98' y2='78'/>";
+		};
+		if (rawSkills >= 3) {
+			html += "<circle cx='80' cy='60' r='3'/>";
+			html += "<line x1='80' y1='50' x2='80' y2='57'/>";
+			html += "<line x1='70' y1='60' x2='77' y2='60'/>";
+			html += "<line x1='80' y1='63' x2='80' y2='70'/>";
+			html += "<line x1='83' y1='60' x2='90' y2='60'/>";
+		};
+		let areaSkills = getSkillsOnPath("area");
+		if (areaSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
+		if (areaSkills >= 2) html += "<path d='M 80,5 Q 88,52 135,60 Q 88,68 80,115 Q 72,68 25,60 Q 72,52 80,5'/>";
+		if (areaSkills >= 3) html += "<rect x='41' y='21' width='78' height='78' transform='rotate(45 80 60)'/>";
+		let spSkills = getSkillsOnPath("sp");
+		if (spSkills >= 1) {
+			html += "<circle cx='10' cy='10' r='3'/>";
+			html += "<circle cx='150' cy='10' r='3'/>";
+			html += "<circle cx='150' cy='110' r='3'/>";
+			html += "<circle cx='10' cy='110' r='3'/>";
+		};
+		if (spSkills >= 2) {
+			html += "<circle cx='20' cy='10' r='3'/>";
+			html += "<circle cx='10' cy='20' r='3'/>";
+			html += "<circle cx='140' cy='10' r='3'/>";
+			html += "<circle cx='150' cy='20' r='3'/>";
+			html += "<circle cx='140' cy='110' r='3'/>";
+			html += "<circle cx='150' cy='100' r='3'/>";
+			html += "<circle cx='20' cy='110' r='3'/>";
+			html += "<circle cx='10' cy='100' r='3'/>";
+		};
+		html += "</svg>";
 		let next = SP.getNextAt(matter);
 		let percentage = Math.round(matter / next * 100 * 1e12) / 1e12;
 		html += "<div style='background: linear-gradient(to right, var(--txt-color) 0% " + percentage + "%, #808080 " + percentage + "% 100%); color: var(--bg-color)'>Progress for next SP:<br>" + formatWhole(matter) + "/" + formatWhole(next) + " matter (" + formatPercent(percentage) + ")</div></div>";

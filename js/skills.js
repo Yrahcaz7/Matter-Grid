@@ -160,6 +160,18 @@ function hasSkill(path, index) {
 };
 
 /**
+ * Gets the number of skills the player has on a specified path.
+ * @param {string} path - the path to get the number of skills from.
+ */
+function getSkillsOnPath(path) {
+	let skills = 0;
+	for (let index = 0; index < SKILLS[path].data.length; index++) {
+		if (hasSkill(path, index)) skills++;
+	};
+	return skills;
+};
+
+/**
  * Buys a skill specified by its path and index.
  * @param {string} path - the path of the skill to check.
  * @param {number} index - the index of the skill to check.
@@ -187,14 +199,20 @@ const SP = {
 		return spent;
 	},
 	/**
+	 * Gets the player's skill point multiplier.
+	 */
+	getMult() {
+		let mult = 1;
+		if (hasSkill("sp", 0)) mult += 0.2;
+		if (hasSkill("sp", 1)) mult += 0.2;
+		return mult;
+	},
+	/**
 	 * Gets the player's total skill points.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getTotal(matter = getMatter()) {
-		let skillMult = 1;
-		if (hasSkill("sp", 0)) skillMult += 0.2;
-		if (hasSkill("sp", 1)) skillMult += 0.2;
-		return Math.floor((matter ** 0.5) / 2 * skillMult);
+		return Math.floor((matter ** 0.5) / 2 * SP.getMult());
 	},
 	/**
 	 * Gets the amount of matter required for the next skill point.
@@ -202,7 +220,7 @@ const SP = {
 	 */
 	getNextAt(matter = getMatter()) {
 		let amt = SP.getTotal(matter) + 1;
-		return (amt * 2) ** 2;
+		return Math.ceil((amt / SP.getMult() * 2) ** 2);
 	},
 	/**
 	 * Respecs the player's skill points after a confirmation.
