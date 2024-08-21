@@ -55,6 +55,10 @@ const SKILLS = {
 			name: "Skill Training",
 			desc: "Adds 20% skill point mult",
 			cost: 2,
+		}, {
+			name: "Skill Enhancement",
+			desc: "Adds 20% skill point mult",
+			cost: 4,
 		}],
 		pos(index) {return [-5, index * 12 + 12]},
 		line(index) {return [-1, index * 12 + 11, 90]},
@@ -205,6 +209,7 @@ const SP = {
 		let mult = 1;
 		if (hasSkill("sp", 0)) mult += 0.2;
 		if (hasSkill("sp", 1)) mult += 0.2;
+		if (hasSkill("sp", 2)) mult += 0.2;
 		return mult;
 	},
 	/**

@@ -192,8 +192,7 @@ const BAND = {
 	 * @param {number} amt - overrides the band amount in the formula.
 	 */
 	getEffect(tier, amt = BAND.getAmount(tier)) {
-		if (tier == 0) return (1 + amt / 4) ** 0.5;
-		return 0;
+		return (1 + amt / 4) ** 0.5;
 	},
 	/**
 	 * Gets a band effect description specified by its tier.
@@ -202,7 +201,7 @@ const BAND = {
 	 */
 	getEffDesc(tier, eff = BAND.getEffect(tier)) {
 		if (tier == 0) return "multiplying click power by " + format(eff) + "x";
-		if (tier == 1) return "doing nothing until a future update"
+		if (tier == 1) return "multiplying adjacent power by " + format(eff) + "x";
 		return "";
 	},
 };

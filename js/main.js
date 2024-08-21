@@ -14,24 +14,24 @@ let game = {
  * Gets the player's click power.
  */
 function getClickPower() {
-	let skillMult = 1;
-	if (hasSkill("raw", 0)) skillMult += 0.1;
-	if (hasSkill("raw", 1)) skillMult += 0.1;
-	if (hasSkill("raw", 2)) skillMult += 0.1;
-	let otherMult = 1;
-	if (BAND.hasEffect(0)) otherMult += BAND.getEffect(0);
-	return 0.1 * skillMult * otherMult;
+	let mult = 1;
+	if (hasSkill("raw", 0)) mult += 0.1;
+	if (hasSkill("raw", 1)) mult += 0.1;
+	if (hasSkill("raw", 2)) mult += 0.1;
+	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
+	return 0.1 * mult;
 };
 
 /**
  * Gets the player's adjacent power.
  */
 function getAdjacentPower() {
-	let skillMult = 0;
-	if (hasSkill("area", 0)) skillMult += 0.1;
-	if (hasSkill("area", 1)) skillMult += 0.1;
-	if (hasSkill("area", 2)) skillMult += 0.1;
-	return getClickPower() * skillMult;
+	let mult = 0;
+	if (hasSkill("area", 0)) mult += 0.1;
+	if (hasSkill("area", 1)) mult += 0.1;
+	if (hasSkill("area", 2)) mult += 0.1;
+	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
+	return getClickPower() * mult;
 };
 
 /**
@@ -244,6 +244,16 @@ function update(resetScroll = false) {
 			html += "<circle cx='150' cy='100' r='3'/>";
 			html += "<circle cx='20' cy='110' r='3'/>";
 			html += "<circle cx='10' cy='100' r='3'/>";
+		};
+		if (spSkills >= 3) {
+			html += "<circle cx='30' cy='10' r='3'/>";
+			html += "<circle cx='10' cy='30' r='3'/>";
+			html += "<circle cx='130' cy='10' r='3'/>";
+			html += "<circle cx='150' cy='30' r='3'/>";
+			html += "<circle cx='130' cy='110' r='3'/>";
+			html += "<circle cx='150' cy='90' r='3'/>";
+			html += "<circle cx='30' cy='110' r='3'/>";
+			html += "<circle cx='10' cy='90' r='3'/>";
 		};
 		html += "</svg>";
 		let next = SP.getNextAt(matter);
