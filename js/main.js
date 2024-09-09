@@ -220,7 +220,7 @@ function update(resetScroll = false) {
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
-		html += "<div>You have " + colorText(formatWhole(skillPoints)) + " " + colorText("skill points (SP)") + ", of which " + colorText(formatWhole(skillPoints - SP.getSpent())) + " are unspent.</div>";
+		html += "<div>You have <b>" + formatWhole(skillPoints) + " skill points (SP)</b>, of which <b>" + formatWhole(skillPoints - SP.getSpent()) + "</b> are unspent.</div>";
 		let bandSkills = getSkillsOnPath("band");
 		html += "<svg viewBox='0 0 160 120' style='flex: 1 1 auto; fill: none; stroke: " + (bandSkills >= 1 ? "color-mix(in srgb, var(--txt-color), " + COLORS[(bandSkills - 1) % COLORS.length] + ")" : "var(--txt-color)") + "'>";
 		let rawSkills = getSkillsOnPath("raw");
@@ -271,9 +271,10 @@ function update(resetScroll = false) {
 			html += "<circle cx='10' cy='90' r='3'/>";
 		};
 		html += "</svg>";
+		let prev = SP.getPrevAt(matter);
 		let next = SP.getNextAt(matter);
-		let percentage = Math.round(matter / next * 100 * 1e12) / 1e12;
-		html += "<div style='background: linear-gradient(to right, var(--txt-color) 0% " + percentage + "%, #808080 " + percentage + "% 100%); color: var(--bg-color)'>Progress for next SP:<br>" + formatWhole(matter) + "/" + formatWhole(next) + " matter (" + formatPercent(percentage) + ")</div></div>";
+		let percentage = Math.round((matter - prev) / (next - prev) * 100 * 1e12) / 1e12;
+		html += "<div style='background: linear-gradient(to right, #808080 0% " + percentage + "%, color-mix(in srgb, var(--bg-color), #808080) " + percentage + "% 100%)'>Progress for next SP:<br>" + formatWhole(matter) + "/" + formatWhole(next) + " matter (" + formatPercent(percentage) + ")</div></div>";
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
@@ -290,14 +291,14 @@ function update(resetScroll = false) {
 						let color = "color-mix(in srgb, var(--txt-color), " + COLORS[index % COLORS.length] + ")";
 						html += "<button tabindex='-1' class='skill on' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em); border-color: " + color + "; color: " + color + "'><b>" + SKILLS[path].data[index].name + "</b><br><br>" + SKILLS[path].data[index].desc + "</button>";
 					} else {
-						html += "<button tabindex='-1' onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: " + colorText(SKILLS[path].data[index].cost + " SP") + "</button>";
+						html += "<button tabindex='-1' onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: <b>" + SKILLS[path].data[index].cost + " SP</b></button>";
 					};
 				};
 			};
 		};
 		html += "</div></div>";
 		html += "<div class='skillUI' style='left: 0; top: 0'>";
-		html += "<button tabindex='-1' onclick='SP.respec()' style='background: linear-gradient(to right, var(--txt-color) 0% " + game.respecProg + "%, #808080 " + game.respecProg + "% 100%)'>RESPEC</button>";
+		html += "<button tabindex='-1' onclick='SP.respec()' style='background: linear-gradient(to right, #808080 0% " + game.respecProg + "%, color-mix(in srgb, var(--bg-color), #808080) " + game.respecProg + "% 100%)'>RESPEC</button>";
 		html += "</div><div class='skillUI' style='right: 0; top: 0; text-align: right'><div>";
 		html += "<button id='zoomIn'" + (game.skillZoom >= 20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
 		html += "<button id='zoomOut'" + (game.skillZoom <= -20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";

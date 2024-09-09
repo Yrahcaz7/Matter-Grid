@@ -163,9 +163,8 @@ td>div>div, th>div>div {
 }
 
 .skillUI button {
-	background-color: #808080;
+	background-color: color-mix(in srgb, var(--bg-color), #808080);
 	font-weight: bold;
-	color: var(--bg-color);
 	pointer-events: auto;
 }
 

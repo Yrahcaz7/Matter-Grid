@@ -224,6 +224,14 @@ const SP = {
 		return Math.floor((matter ** 0.5) / 2 * SP.getMult());
 	},
 	/**
+	 * Gets the amount of matter required for the previous skill point.
+	 * @param {number} matter - overrides the matter amount in the formula.
+	 */
+	getPrevAt(matter = getMatter()) {
+		let amt = SP.getTotal(matter);
+		return Math.ceil((amt / SP.getMult() * 2) ** 2);
+	},
+	/**
 	 * Gets the amount of matter required for the next skill point.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */

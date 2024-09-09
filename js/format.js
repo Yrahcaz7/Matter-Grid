@@ -44,5 +44,6 @@ function formatPercent(num) {
  * @param {number} tier - the tier to use for coloring.
  */
 function colorText(str, tier = -1) {
-	return "<span style='color: color-mix(in srgb, var(--txt-color), " + (tier >= 0 ? COLORS[tier % COLORS.length] : "#808080") + ")'>" + str + "</span>";
+	if (tier < 0) return str;
+	return "<span style='color: color-mix(in srgb, var(--txt-color), " + COLORS[tier % COLORS.length] + ")'>" + str + "</span>";
 };
