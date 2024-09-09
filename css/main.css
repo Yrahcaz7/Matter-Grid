@@ -23,6 +23,9 @@ html, body {
 
 #grid {
 	float: inline-start;
+}
+
+#grid, #gridAnimation {
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
@@ -32,6 +35,19 @@ html, body {
 	padding: 10px;
 	user-select: none;
 	-webkit-user-select: none;
+}
+
+#gridAnimation {
+	position: absolute;
+	transition: all 0.8s 0s, opacity 0.4s 0.8s;
+}
+
+#gridAnimation.inverse {
+	transition: all 0.8s 0.4s, opacity 0.4s 0s;
+}
+
+#gridAnimation>* {
+	background-color: var(--bg-color);
 }
 
 table {
@@ -208,8 +224,15 @@ dialog {
 	margin-top: 5px;
 }
 
+#animationCover {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+}
+
 @media screen and (max-width: 600px) {
-	#grid {
+	#grid, #gridAnimation {
 		margin-left: -100%;
 	}
 	#bar {

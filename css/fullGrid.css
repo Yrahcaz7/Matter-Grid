@@ -6,6 +6,10 @@ body {
 	width: calc(66.66% - 2.5em) !important;
 }
 
+#gridAnimation {
+	width: calc(100% - 2.5em) !important;
+}
+
 td, th {
 	font-size: calc(clamp(11px, 5.5vw, 5.5vh) - 2px) !important;
 }
@@ -24,7 +28,7 @@ td, th {
 	#bar {
 		width: 50% !important;
 	}
-	#grid, #bar {
+	#grid, #gridAnimation, #bar {
 		margin-left: 0;
 	}
 }

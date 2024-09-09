@@ -5,6 +5,7 @@ const SAVE = {
 	 * Opens the save wiping menu.
 	 */
 	wipe() {
+		if (gridAnimation.on) return;
 		if (!document.getElementById("confirm_wipe")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_wipe";
@@ -37,6 +38,7 @@ const SAVE = {
 	 * Opens the save exporting menu.
 	 */
 	export() {
+		if (gridAnimation.on) return;
 		if (!document.getElementById("confirm_export")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_export";
@@ -59,6 +61,7 @@ const SAVE = {
 	 * Opens the save importing menu.
 	 */
 	import() {
+		if (gridAnimation.on) return;
 		if (!document.getElementById("confirm_import")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_import";
@@ -85,6 +88,7 @@ const SAVE = {
 					try {
 						let parsed = JSON.parse(atob(item));
 						if (typeof parsed == "object") {
+							wiping = true;
 							localStorage.setItem(SAVE.ID, item);
 							location.reload();
 						} else {

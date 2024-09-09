@@ -39,6 +39,7 @@ function getAdjacentPower() {
  * @param {number} index - the index of the tab to change to.
  */
 function changeTab(index) {
+	if (gridAnimation.on) return;
 	game.tab = TABS[index];
 	update(true);
 };
@@ -47,6 +48,7 @@ function changeTab(index) {
  * Toggles the mode from light to dark or vice versa.
  */
 function toggleDarkMode() {
+	if (gridAnimation.on) return;
 	if (game.darkMode) {
 		document.documentElement.style.setProperty("--bg-color", "#F0F0F0");
 		document.documentElement.style.setProperty("--txt-color", "#101010");
@@ -61,6 +63,7 @@ function toggleDarkMode() {
  * Toggles whether the right bar is collapsed.
  */
 function toggleBar() {
+	if (gridAnimation.on) return;
 	if (!document.getElementById("fullGridCSS")) {
 		let element = document.createElement("link");
 		element.id = "fullGridCSS";
@@ -95,7 +98,15 @@ function update(resetScroll = false) {
 	for (; tier < game.layer.length; tier++) {
 		if (game.layer[tier].length) break;
 	};
-	html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'><table style='--tier-color: " + COLORS[tier % COLORS.length] + "80'>";
+	if (gridAnimation.on && !gridAnimation.coords.length) {
+		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
+		const getCoord = index => "calc((" + document.getElementById("grid").firstChild.offsetWidth + "px / 13) * " + (game.layer[tier][index] - 5) + ")";
+		let scale = (38 / 522);
+		html += "<div id='gridAnimation' class='inverse' style='left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")' oncopy='return false' onpaste='return false' oncut='return false'>";
+	} else {
+		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>";
+	};
+	html += "<table style='--tier-color: " + COLORS[tier % COLORS.length] + "80'>";
 	for (let col = -1; col < 12; col++) {
 		html += "<tr>";
 		for (let row = -1; row < 12; row++) {
@@ -160,7 +171,11 @@ function update(resetScroll = false) {
 		};
 		html += "</tr>";
 	};
-	html += "</table></div><div id='bar'><div id='tabs'>";
+	html += "</table></div>";
+	if (gridAnimation.on && gridAnimation.coords.length) {
+		html += "<div id='gridAnimation' style='left: 0; top: 0; opacity: 1' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
+	};
+	html += "<div id='bar'><div id='tabs'>";
 	for (let index = 0; index < TABS.length; index++) {
 		if (TABS[index] == game.tab) html += "<button tabindex='-1' class='on'>" + TABS[index] + "</button>";
 		else html += "<button tabindex='-1' onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
@@ -298,6 +313,7 @@ function update(resetScroll = false) {
 		html += "<button tabindex='-1' onclick='toggleDarkMode()'>Toggle Dark Mode</button>";
 	};
 	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
+	if (gridAnimation.on) html += "<div id='animationCover'></div>";
 	if (resetScroll) {
 		document.body.innerHTML = html;
 		if (game.tab == "Skills") centerSkillTree();
@@ -308,6 +324,15 @@ function update(resetScroll = false) {
 		document.body.innerHTML = html;
 		document.getElementById(id).scrollLeft = scrollLeft;
 		document.getElementById(id).scrollTop = scrollTop;
+	};
+	if (gridAnimation.on) {
+		if (gridAnimation.coords.length) {
+			const getCoord = index => "calc((" + document.getElementById("grid").firstChild.offsetWidth + "px / 13) * " + (gridAnimation.coords[index] - 5) + ")";
+			let scale = (38 / 522);
+			document.getElementById("gridAnimation").style = "left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")";
+		} else {
+			document.getElementById("gridAnimation").style = "left: 0; top: 0; opacity: 1; transform: scale(1, 1)";
+		};
 	};
 	adjustSkillUI();
 };

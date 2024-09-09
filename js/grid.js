@@ -1,3 +1,11 @@
+const gridAnimationLength = 1200;
+
+let gridAnimation = {
+	grid: "",
+	coords: [],
+	on: false,
+};
+
 /**
  * Gets the starting state of a normal layer.
  * @returns {number[][]}
@@ -18,6 +26,20 @@ function getStartLayer() {
  * @param {number} tier - the tier to go to.
  */
 function goUpToTier(tier) {
+	if (gridAnimation.on) return;
+	gridAnimation.grid = document.getElementById("grid").innerHTML;
+	for (let index = 0; index < game.layer.length; index++) {
+		if (game.layer[index].length > 0) {
+			gridAnimation.coords = game.layer[index].slice();
+			break;
+		};
+	};
+	gridAnimation.on = true;
+	setTimeout(() => {
+		document.getElementById("gridAnimation").remove();
+		document.getElementById("animationCover").remove();
+		gridAnimation.on = false;
+	}, gridAnimationLength);
 	if (!game.layer[tier]) game.layer[tier] = [0, 0];
 	for (let index = 0; index < tier; index++) {
 		game.layer[index] = [];
@@ -30,6 +52,7 @@ function goUpToTier(tier) {
  * @param {number} tier - the tier of the layer to complete.
  */
 function completeLayer(tier) {
+	if (gridAnimation.on) return;
 	game.grid[tier] = getStartLayer();
 	game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] = 1;
 	goUpToTier(tier + 1);
@@ -51,6 +74,7 @@ function getTierName(tier) {
  * @param {number} col - the destination column of the movement.
  */
 function moveLayer(tier, row, col) {
+	if (gridAnimation.on) return;
 	if (!document.getElementById("confirm_move")) {
 		let element = document.createElement("dialog");
 		element.id = "confirm_move";
@@ -94,6 +118,7 @@ function moveLayer(tier, row, col) {
  * @param {number} col - the column of the layer to enter.
  */
 function enterLayer(tier, row, col) {
+	if (gridAnimation.on) return;
 	if (game.grid[tier + 1][row][col] < 1) {
 		for (let r = 0; r < 12; r++) {
 			for (let c = 0; c < 12; c++) {
@@ -106,6 +131,13 @@ function enterLayer(tier, row, col) {
 		game.grid[tier + 1][row][col] = -1;
 	};
 	game.layer[tier] = [row, col];
+	gridAnimation.grid = document.getElementById("grid").innerHTML;
+	gridAnimation.coords = [];
+	gridAnimation.on = true;
+	setTimeout(() => {
+		gridAnimation.on = false;
+		update();
+	}, gridAnimationLength);
 	update();
 };
 
@@ -115,6 +147,7 @@ function enterLayer(tier, row, col) {
  * @param {number} col - the column of the node to click.
  */
 function clickNode(row, col) {
+	if (gridAnimation.on) return;
 	game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + getClickPower()) * 1e12) / 1e12, 1);
 	let adjPow = getAdjacentPower();
 	if (adjPow > 0) {
