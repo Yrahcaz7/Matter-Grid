@@ -6,12 +6,16 @@ const SKILLS = {
 			cost: 1,
 		}, {
 			name: "Even Stronger Clicks",
-			desc: "Adds 10% click power mult",
+			desc: "Adds 15% click power mult",
 			cost: 2,
 		}, {
 			name: "Bloated Clicks",
-			desc: "Adds 10% click power mult",
+			desc: "Adds 20% click power mult",
 			cost: 4,
+		}, {
+			name: "Oversized Clicks",
+			desc: "Adds 25% click power mult",
+			cost: 8,
 		}],
 		pos(index) {return [0 - (index * 12 + 22), -5]},
 		line(index) {return [0 - (index * 12 + 12), 0]},
@@ -25,6 +29,10 @@ const SKILLS = {
 			name: "Regional Band Power",
 			desc: "Unlocks the " + colorText(getTierName(1), 1) + " band effect",
 			cost: 10,
+		}, {
+			name: "Enhanced Band Power",
+			desc: "Makes all band types worth 2x as much",
+			cost: 20,
 		}],
 		pos(index) {return [-5, 0 - (index * 12 + 22)]},
 		line(index) {return [-1, 0 - (index * 12 + 11), 90]},
@@ -32,7 +40,7 @@ const SKILLS = {
 	area: {
 		data: [{
 			name: "Larger Area",
-			desc: "Adds 10% of click power as adjacent power",
+			desc: "Adds 5% of click power as adjacent power",
 			cost: 1,
 		}, {
 			name: "Stronger Link",
@@ -40,8 +48,12 @@ const SKILLS = {
 			cost: 2,
 		}, {
 			name: "Adjacent Advantage",
-			desc: "Adds 10% of click power as adjacent power",
+			desc: "Adds 15% of click power as adjacent power",
 			cost: 4,
+		}, {
+			name: "Secondary Power",
+			desc: "Adds 20% of click power as adjacent power",
+			cost: 8,
 		}],
 		pos(index) {return [index * 12 + 12, -5]},
 		line(index) {return [index * 12 + 10, 0]},
@@ -53,12 +65,16 @@ const SKILLS = {
 			cost: 1,
 		}, {
 			name: "Skill Training",
-			desc: "Adds 20% skill point mult",
+			desc: "Adds 25% skill point mult",
 			cost: 2,
 		}, {
 			name: "Skill Enhancement",
-			desc: "Adds 20% skill point mult",
+			desc: "Adds 30% skill point mult",
 			cost: 4,
+		}, {
+			name: "Skill Inflation",
+			desc: "Adds 35% skill point mult",
+			cost: 8,
 		}],
 		pos(index) {return [-5, index * 12 + 12]},
 		line(index) {return [-1, index * 12 + 11, 90]},
@@ -212,8 +228,9 @@ const SP = {
 	getMult() {
 		let mult = 1;
 		if (hasSkill("sp", 0)) mult += 0.2;
-		if (hasSkill("sp", 1)) mult += 0.2;
-		if (hasSkill("sp", 2)) mult += 0.2;
+		if (hasSkill("sp", 1)) mult += 0.25;
+		if (hasSkill("sp", 2)) mult += 0.3;
+		if (hasSkill("sp", 3)) mult += 0.35;
 		return mult;
 	},
 	/**

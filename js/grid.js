@@ -225,7 +225,9 @@ const BAND = {
 	 * @param {number} amt - overrides the band amount in the formula.
 	 */
 	getEffect(tier, amt = BAND.getAmount(tier)) {
-		return (1 + amt / 4) ** 0.5;
+		let worth = 0.25;
+		if (hasSkill("band", 2)) worth *= 2;
+		return (1 + amt * worth) ** 0.5;
 	},
 	/**
 	 * Gets a band effect description specified by its tier.
