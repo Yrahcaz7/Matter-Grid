@@ -262,37 +262,49 @@ function update(resetScroll = false) {
 		html += "<div>You have <b>" + formatWhole(skillPoints) + " skill points (SP)</b>, of which <b>" + formatWhole(skillPoints - SP.getSpent()) + "</b> are unspent.</div>";
 		// band skill path and setup
 		let bandSkills = getSkillsOnPath("band");
-		html += "<svg viewBox='0 0 160 120' style='flex: 1 1 auto; fill: none; stroke: " + (bandSkills >= 1 ? "color-mix(in srgb, var(--txt-color), " + COLORS[(bandSkills - 1) % COLORS.length] + ")" : "var(--txt-color)") + "'>";
-		html += "<circle cx='80' cy='60' r='25'/>";
-		// raw skill path
+		let color = (bandSkills >= 1 ? "color-mix(in srgb, var(--txt-color), " + COLORS[(bandSkills - 1) % COLORS.length] + ")" : "var(--txt-color)");
+		html += "<svg viewBox='0 0 160 120' style='flex: 1 1 auto; fill: none; stroke: " + color + "'>";
+		// raw and mir skill paths
 		let rawSkills = getSkillsOnPath("raw");
-		if (rawSkills >= 1) html += "<circle cx='80' cy='60' r='10'/>";
+		let mirSkills = getSkillsOnPath("mir");
+		html += "<circle cx='80' cy='60' r='25'" + (mirSkills >= 2 ? " fill='" + color + "' stroke='none'" : "") + "/>";
+		if (rawSkills >= 1) html += "<circle cx='80' cy='60' r='10'" + (mirSkills >= 1 ? " fill='" + color + "' stroke='var(--bg-color)'" : "") + "/>";
 		if (rawSkills >= 2) {
+			html += "<g" + (mirSkills >= 2 ? " stroke='var(--bg-color)'" : "") + ">";
 			html += "<line x1='62' y1='42' x2='73' y2='53'/>";
 			html += "<line x1='98' y1='42' x2='87' y2='53'/>";
 			html += "<line x1='98' y1='78' x2='87' y2='67'/>";
 			html += "<line x1='62' y1='78' x2='73' y2='67'/>";
+			html += "</g>";
 		};
 		if (rawSkills >= 3) {
+			html += "<g" + (mirSkills >= 1 ? " stroke='var(--bg-color)'" : "") + ">";
 			html += "<circle cx='80' cy='60' r='3'/>";
 			html += "<line x1='80' y1='50' x2='80' y2='57'/>";
 			html += "<line x1='90' y1='60' x2='83' y2='60'/>";
 			html += "<line x1='80' y1='70' x2='80' y2='63'/>";
 			html += "<line x1='70' y1='60' x2='77' y2='60'/>";
+			html += "</g>";
 		};
-		if (rawSkills >= 4) html += "<polygon points='62,42 80,50 98,42 90,60 98,78 80,70 62,78 70,60' stroke-linejoin='bevel'/>";
+		if (rawSkills >= 4) html += "<polygon points='62.5,42.5 80,50 97.5,42.5 90,60 97.5,77.5 80,70 62.5,77.5 70,60' " + (mirSkills >= 2 ? " stroke='var(--bg-color)'" : "") + "stroke-linejoin='bevel'/>";
 		// rhom skill path
-		// let rhomSkills = getSkillsOnPath("rhom");
-		// if (rhomSkills >= 1) html += "<polygon points='80,35 105,60 80,85 55,60' stroke-linejoin='bevel'/>";
-		// if (rhomSkills >= 2) html += "<rect x='52.5' y='32.5' width='10?' height='10?'/>";
+		let rhomSkills = getSkillsOnPath("rhom");
+		if (rhomSkills >= 1) html += "<polygon points='80,35 105,60 80,85 55,60' " + (mirSkills >= 2 ? "stroke='var(--bg-color)'" : "") + "stroke-linejoin='bevel'/>";
+		if (rhomSkills >= 2) {
+			html += "<rect x='53.5' y='33.5' width='7.5' height='7.5' transform='rotate(45 57.25 37.25)'/>";
+			html += "<rect x='99' y='33.5' width='7.5' height='7.5' transform='rotate(45 102.75 37.25)'/>";
+			html += "<rect x='99' y='79' width='7.5' height='7.5' transform='rotate(45 102.75 82.75)'/>";
+			html += "<rect x='53.5' y='79' width='7.5' height='7.5' transform='rotate(45 57.25 82.75)'/>";
+		};
 		// adj skill path
 		let adjSkills = getSkillsOnPath("adj");
 		if (adjSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
 		if (adjSkills >= 2) html += "<path d='M 80,5 Q 88,52 135,60 Q 88,68 80,115 Q 72,68 25,60 Q 72,52 80,5'/>";
-		if (adjSkills >= 3) html += "<rect x='41' y='21' width='78' height='78' transform='rotate(45 80 60)'/>";
+		if (adjSkills >= 3) html += "<rect x='41' y='21' width='78' height='78' transform='rotate(45 80 60)'" + (adjSkills >= 4 ? " stroke-linejoin='bevel'" : "") + "/>";
 		if (adjSkills >= 4) html += "<circle cx='80' cy='60' r='55'/>";
-		// SP skill path
+		// sp, adjsp, and rawsp skill paths
 		let spSkills = getSkillsOnPath("sp");
+		let adjspSkills = getSkillsOnPath("adjsp");
 		if (spSkills > 0) {
 			html += "<g id='border'>";
 			if (spSkills >= 1) html += "<circle cx='10' cy='10' r='3'/>";
@@ -308,6 +320,13 @@ function update(resetScroll = false) {
 				html += "<circle cx='40' cy='10' r='3'/>";
 				html += "<circle cx='10' cy='40' r='3'/>";
 			};
+			if (adjspSkills >= 1) html += "<rect x='5' y='5' width='10' height='10'/>";
+			if (adjspSkills >= 2) {
+				html += "<rect x='15' y='5' width='10' height='10'/>";
+				html += "<rect x='5' y='15' width='10' height='10'/>";
+			};
+			if (adjspSkills >= 1) html += "<circle cx='25' cy='25' r='10'/>";
+			if (adjspSkills >= 2) html += "<circle cx='25' cy='25' r='3'/>";
 			html += "</g>";
 			html += "<use href='#border' x='-160' transform='scale(-1, 1)'/>";
 			html += "<use href='#border' x='-160' y='-120' transform='scale(-1, -1)'/>";
