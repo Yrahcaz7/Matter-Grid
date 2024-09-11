@@ -142,19 +142,34 @@ function enterLayer(tier, row, col) {
 };
 
 /**
+ * Raises a node's value by a specified amount.
+ * @param {number} row - the row of the node to raise the value of.
+ * @param {number} col - the column of the node to raise the value of.
+ * @param {number} amt - the amount to raise the node's value by.
+ */
+function raiseNodeValue(row, col, amt) {
+	if (gridAnimation.on) return;
+	if (game.grid[0][row]?.length && game.grid[0][row][col] !== undefined) game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + amt) * 1e12) / 1e12, 1);
+};
+
+/**
  * Clicks the node with the specified row and column in the active tier 0 layer.
  * @param {number} row - the row of the node to click.
  * @param {number} col - the column of the node to click.
  */
 function clickNode(row, col) {
 	if (gridAnimation.on) return;
-	game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + getClickPower()) * 1e12) / 1e12, 1);
+	let raises = [[row, col, getClickPower()]];
+	// rightward path powers
 	let adjPow = getAdjacentPower();
-	if (adjPow > 0) {
-		if (game.grid[0][row - 1]?.length) game.grid[0][row - 1][col] = Math.min(Math.round((game.grid[0][row - 1][col] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row + 1]?.length) game.grid[0][row + 1][col] = Math.min(Math.round((game.grid[0][row + 1][col] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row][col - 1] !== undefined) game.grid[0][row][col - 1] = Math.min(Math.round((game.grid[0][row][col - 1] + adjPow) * 1e12) / 1e12, 1);
-		if (game.grid[0][row][col + 1] !== undefined) game.grid[0][row][col + 1] = Math.min(Math.round((game.grid[0][row][col + 1] + adjPow) * 1e12) / 1e12, 1);
+	if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
+	let rhomPow = getRhombusPower();
+	if (rhomPow > 0) raises.push([row - 2, col, rhomPow], [row - 1, col - 1, rhomPow], [row - 1, col + 1, rhomPow], [row, col - 2, rhomPow], [row, col + 2, rhomPow], [row + 1, col - 1, rhomPow], [row + 1, col + 1, rhomPow], [row + 2, col, rhomPow]);
+	// other path powers
+	let mirPower = getMirrorPower();
+	for (let index = 0; index < raises.length; index++) {
+		raiseNodeValue(raises[index][0], raises[index][1], raises[index][2]);
+		if (mirPower > 0) raiseNodeValue(11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
 	};
 	update();
 };
@@ -225,10 +240,10 @@ const BAND = {
 	 * @param {number} amt - overrides the band amount in the formula.
 	 */
 	getEffect(tier, amt = BAND.getAmount(tier)) {
-		let worth = 0.25;
-		if (hasSkill("band", 2)) worth *= 2;
+		let mult = 0.25;
+		if (hasSkill("band", 2)) mult *= 2;
 		if (game.resetPoints > 0) mult *= RP.getEff();
-		return (1 + amt * worth) ** 0.5;
+		return (1 + amt * mult) ** 0.5;
 	},
 	/**
 	 * Gets a band effect description specified by its tier.

@@ -20,6 +20,11 @@ function getClickPower() {
 	if (hasSkill("raw", 1)) mult += 0.15;
 	if (hasSkill("raw", 2)) mult += 0.2;
 	if (hasSkill("raw", 3)) mult += 0.25;
+	if (hasSkill("rawsp", 0)) {
+		let unspentSP = SP.getTotal() - SP.getSpent();
+		mult += 0.02 * unspentSP;
+		if (hasSkill("rawsp", 1)) mult += 0.03 * unspentSP;
+	};
 	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
 	if (game.resetPoints > 0) mult *= RP.getEff();
 	return 0.1 * mult;
@@ -34,9 +39,34 @@ function getAdjacentPower() {
 	if (hasSkill("adj", 1)) mult += 0.1;
 	if (hasSkill("adj", 2)) mult += 0.15;
 	if (hasSkill("adj", 3)) mult += 0.2;
+	if (hasSkill("adjsp", 0)) {
+		let unspentSP = SP.getTotal() - SP.getSpent();
+		mult += 0.01 * unspentSP;
+		if (hasSkill("adjsp", 1)) mult += 0.02 * unspentSP;
+	};
 	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
 	if (game.resetPoints > 0) mult *= RP.getEff();
 	return getClickPower() * mult;
+};
+
+/**
+ * Gets the player's rhombus power.
+ */
+function getRhombusPower() {
+	let mult = 0;
+	if (hasSkill("rhom", 0)) mult += 0.05;
+	if (hasSkill("rhom", 1)) mult += 0.1;
+	return getAdjacentPower() * mult;
+};
+
+/**
+ * Gets the player's mirror power.
+ */
+function getMirrorPower() {
+	let mult = 0;
+	if (hasSkill("mir", 0)) mult += 0.05;
+	if (hasSkill("mir", 1)) mult += 0.1;
+	return mult;
 };
 
 /**
@@ -220,18 +250,22 @@ function update(resetScroll = false) {
 		html += "<br><br>Your click power is " + format(getClickPower());
 		let adjPower = getAdjacentPower();
 		if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
+		let rhomPower = getRhombusPower();
+		if (rhomPower > 0) html += "<br>Your rhombus power is " + format(rhomPower);
+		let mirPower = getMirrorPower();
+		if (mirPower > 0) html += "<br><br>Your mirror power is " + format(mirPower);
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
 		let matter = getMatter();
 		let skillPoints = SP.getTotal(matter);
 		html += "<div>You have <b>" + formatWhole(skillPoints) + " skill points (SP)</b>, of which <b>" + formatWhole(skillPoints - SP.getSpent()) + "</b> are unspent.</div>";
-		// band skill path
+		// band skill path and setup
 		let bandSkills = getSkillsOnPath("band");
 		html += "<svg viewBox='0 0 160 120' style='flex: 1 1 auto; fill: none; stroke: " + (bandSkills >= 1 ? "color-mix(in srgb, var(--txt-color), " + COLORS[(bandSkills - 1) % COLORS.length] + ")" : "var(--txt-color)") + "'>";
+		html += "<circle cx='80' cy='60' r='25'/>";
 		// raw skill path
 		let rawSkills = getSkillsOnPath("raw");
-		html += "<circle cx='80' cy='60' r='25'/>";
 		if (rawSkills >= 1) html += "<circle cx='80' cy='60' r='10'/>";
 		if (rawSkills >= 2) {
 			html += "<line x1='62' y1='42' x2='73' y2='53'/>";
@@ -247,6 +281,10 @@ function update(resetScroll = false) {
 			html += "<line x1='70' y1='60' x2='77' y2='60'/>";
 		};
 		if (rawSkills >= 4) html += "<polygon points='62,42 80,50 98,42 90,60 98,78 80,70 62,78 70,60' stroke-linejoin='bevel'/>";
+		// rhom skill path
+		// let rhomSkills = getSkillsOnPath("rhom");
+		// if (rhomSkills >= 1) html += "<polygon points='80,35 105,60 80,85 55,60' stroke-linejoin='bevel'/>";
+		// if (rhomSkills >= 2) html += "<rect x='52.5' y='32.5' width='10?' height='10?'/>";
 		// adj skill path
 		let adjSkills = getSkillsOnPath("adj");
 		if (adjSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
@@ -283,11 +321,15 @@ function update(resetScroll = false) {
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
 				if (typeof SKILLS[path].unlocked == "function" && !SKILLS[path].unlocked()) continue;
-				for (let index = 0; index < SKILLS[path].data.length; index++) {
-					let lines = SKILLS[path].lines(index);
-					lines.forEach(line => {
-						html += "<div class='line' style='left: calc(50%" + (line.x ? " + " + (line.x - (line.size ? line.size / 2 - 1 : 0)) + "em" : "") + " - 1px); top: calc(50%" + (line.y ? " + " + line.y + "em" : "") + " - 1px)" + (line.size ? "; width: " + line.size + "em" : "") + (line.rot ? "; transform: rotate(" + line.rot + "deg)" : "") + "'></div>";
-					});
+				for (let skillIndex = 0; skillIndex < SKILLS[path].data.length; skillIndex++) {
+					let lines = SKILLS[path].lines(skillIndex);
+					for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+						let off = (lineIndex == 0 ?
+							skillIndex > 0 && !hasSkill(path, skillIndex - 1)
+							: !hasSkill(...SKILLS[path].data[skillIndex].req[lineIndex - 1])
+						);
+						html += "<div class='line" + (off ? " off" : "") + "' style='left: calc(50%" + (lines[lineIndex].x ? " + " + (lines[lineIndex].x - (lines[lineIndex].size ? lines[lineIndex].size / 2 - 1 : 0)) + "em" : "") + " - 1px); top: calc(50%" + (lines[lineIndex].y ? " + " + lines[lineIndex].y + "em" : "") + " - 1px)" + (lines[lineIndex].size ? "; width: " + lines[lineIndex].size + "em" : "") + (lines[lineIndex].rot ? "; transform: rotate(" + lines[lineIndex].rot + "deg)" : "") + "'></div>";
+					};
 				};
 			};
 		};
@@ -299,8 +341,10 @@ function update(resetScroll = false) {
 					if (hasSkill(path, index)) {
 						let color = "color-mix(in srgb, var(--txt-color), " + COLORS[index % COLORS.length] + ")";
 						html += "<button tabindex='-1' class='skill on' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em); border-color: " + color + "; color: " + color + "'><b>" + SKILLS[path].data[index].name + "</b><br><br>" + SKILLS[path].data[index].desc + "</button>";
-					} else {
+					} else if (skillUnlocked(path, index)) {
 						html += "<button tabindex='-1' onclick='buySkill(\"" + path + "\", " + index + ")' class='skill' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: <b>" + SKILLS[path].data[index].cost + " SP</b></button>";
+					} else {
+						html += "<button tabindex='-1' class='skill off' style='left: calc(50% + " + pos[0] + "em); top: calc(50% + " + pos[1] + "em)'><b>" + SKILLS[path].data[index].name + "</b><br>" + SKILLS[path].data[index].desc + "<br><br>Cost: <b>" + SKILLS[path].data[index].cost + " SP</b></button>";
 					};
 				};
 			};

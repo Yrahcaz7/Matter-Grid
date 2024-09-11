@@ -20,7 +20,26 @@ const SKILLS = {
 		pos(index) {return [0 - (index * 12 + 22), -5]},
 		lines(index) {return [{x: 0 - (index * 12 + 12)}]},
 	},
-	//raw_band: {},
+	mir: {
+		data: [{
+			name: "Reflection",
+			desc: "Adds " + format(0.05) + " mirror power",
+			cost: 2,
+			req: [["raw", 0], ["band", 0]],
+		}, {
+			name: "Stronger Mirroring",
+			desc: "Adds " + format(0.1) + " mirror power",
+			cost: 4,
+			req: [["raw", 1], ["band", 1]],
+		}],
+		pos(index) {return [0 - (index * 12 + 22), 0 - (index * 12 + 22)]},
+		lines(index) {return [
+			{x: 0 - (index * 12 + 12), y: 0 - (index * 12 + 11), size: 3, rot: 45},
+			{x: 0 - (index * 12 + 18), y: 0 - (index * 6 + 8.5), size: index * 12 + 7, rot: 90},
+			{x: 0 - (index * 6 + 9.5), y: 0 - (index * 12 + 17), size: index * 12 + 7},
+		]},
+		unlocked() {return hasMilestone(0)},
+	},
 	band: {
 		data: [{
 			name: "Matter Band Power",
@@ -43,17 +62,17 @@ const SKILLS = {
 			name: "Cascading Area",
 			desc: "Adds 5% of adjacent power as rhombus power",
 			cost: 2,
-			// req: [["band", 0], ["adj", 0]],
+			req: [["band", 0], ["adj", 0]],
 		}, {
 			name: "Stronger Rhombus",
 			desc: "Adds 10% of adjacent power as rhombus power",
 			cost: 4,
-			// req: [["band", 1], ["adj", 1]],
+			req: [["band", 1], ["adj", 1]],
 		}],
 		pos(index) {return [index * 12 + 12, 0 - (index * 12 + 22)]},
 		lines(index) {return [
-			{x: index * 6 + 7.5, y: 0 - (index * 12 + 17), size: index * 12 + 7},
 			{x: index * 12 + 10, y: 0 - (index * 12 + 11), size: 3, rot: 135},
+			{x: index * 6 + 7.5, y: 0 - (index * 12 + 17), size: index * 12 + 7},
 			{x: index * 12 + 16, y: 0 - (index * 6 + 8.5), size: index * 12 + 7, rot: 90},
 		]},
 		unlocked() {return hasMilestone(0)},
@@ -79,7 +98,26 @@ const SKILLS = {
 		pos(index) {return [index * 12 + 12, -5]},
 		lines(index) {return [{x: index * 12 + 10}]},
 	},
-	//adj_sp: {},
+	adjsp: {
+		data: [{
+			name: "Leftover Area",
+			desc: "Adds 1% of click power as adjacent power per unspent SP",
+			cost: 2,
+			req: [["adj", 0], ["sp", 0]],
+		}, {
+			name: "Liquid Links",
+			desc: "Adds 2% of click power as adjacent power per unspent SP",
+			cost: 4,
+			req: [["adj", 1], ["sp", 1]],
+		}],
+		pos(index) {return [index * 12 + 12, index * 12 + 12]},
+		lines(index) {return [
+			{x: index * 12 + 10, y: index * 12 + 11, size: 3, rot: 45},
+			{x: index * 12 + 16, y: index * 6 + 8.5, size: index * 12 + 7, rot: 90},
+			{x: index * 6 + 7.5, y: index * 12 + 17, size: index * 12 + 7},
+		]},
+		unlocked() {return hasMilestone(0)},
+	},
 	sp: {
 		data: [{
 			name: "Skill Growth",
@@ -101,7 +139,26 @@ const SKILLS = {
 		pos(index) {return [-5, index * 12 + 12]},
 		lines(index) {return [{x: -1, y: index * 12 + 11, rot: 90}]},
 	},
-	//sp_raw: {},
+	rawsp: {
+		data: [{
+			name: "Leftover Clicks",
+			desc: "Adds 2% click power mult per unspent SP",
+			cost: 2,
+			req: [["sp", 0], ["raw", 0]],
+		}, {
+			name: "Oozing Clicks",
+			desc: "Adds 3% click power mult per unspent SP",
+			cost: 4,
+			req: [["sp", 1], ["raw", 1]],
+		}],
+		pos(index) {return [0 - (index * 12 + 22), index * 12 + 12]},
+		lines(index) {return [
+			{x: 0 - (index * 12 + 12), y: index * 12 + 11, size: 3, rot: 135},
+			{x: 0 - (index * 6 + 9.5), y: index * 12 + 17, size: index * 12 + 7},
+			{x: 0 - (index * 12 + 18), y: index * 6 + 8.5, size: index * 12 + 7, rot: 90},
+		]},
+		unlocked() {return hasMilestone(0)},
+	},
 };
 
 /**
@@ -197,6 +254,20 @@ function adjustSkillUI() {
 };
 
 /**
+ * Checks the unlock status of a skill specified by its path and index.
+ * @param {string} path - the path of the skill to check.
+ * @param {number} index - the index of the skill to check.
+ */
+function skillUnlocked(path, index) {
+	if (typeof SKILLS[path].unlocked == "function" && !SKILLS[path].unlocked()) return false;
+	if (index > 0 && !hasSkill(path, index - 1)) return false;
+	for (let num = 0; num < SKILLS[path].data[index].req?.length; num++) {
+		if (!hasSkill(...SKILLS[path].data[index].req[num])) return false;
+	};
+	return true;
+};
+
+/**
  * Checks whether the player has a skill specified by its path and index.
  * @param {string} path - the path of the skill to check.
  * @param {number} index - the index of the skill to check.
@@ -224,7 +295,7 @@ function getSkillsOnPath(path) {
  */
 function buySkill(path, index) {
 	if (gridAnimation.on) return;
-	if (game.skills[path][index] === undefined && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
+	if (skillUnlocked(path, index) && !hasSkill(path, index) && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
 		game.skills[path][index] = SKILLS[path].data[index].cost;
 		update();
 	};

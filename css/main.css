@@ -157,6 +157,11 @@ td>div>div, th>div>div {
 	background-color: var(--txt-color);
 }
 
+.line.off {
+	border-color: #808080;
+	background-color: #808080;
+}
+
 .skillUI {
 	position: absolute;
 	padding: 5px 10px;
