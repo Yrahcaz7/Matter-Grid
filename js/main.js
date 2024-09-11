@@ -1,4 +1,4 @@
-const TABS = ["Stats", "Skills", "Settings"];
+const TABS = ["Stats", "Skills", "Reset", "Settings"];
 
 let game = {
 	grid: [],
@@ -7,6 +7,7 @@ let game = {
 	skills: {},
 	skillZoom: 0,
 	respecProg: 0,
+	resetPoints: 0,
 	darkMode: true,
 };
 
@@ -20,6 +21,7 @@ function getClickPower() {
 	if (hasSkill("raw", 2)) mult += 0.2;
 	if (hasSkill("raw", 3)) mult += 0.25;
 	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
+	if (game.resetPoints > 0) mult *= RP.getEff();
 	return 0.1 * mult;
 };
 
@@ -28,11 +30,12 @@ function getClickPower() {
  */
 function getAdjacentPower() {
 	let mult = 0;
-	if (hasSkill("area", 0)) mult += 0.05;
-	if (hasSkill("area", 1)) mult += 0.1;
-	if (hasSkill("area", 2)) mult += 0.15;
-	if (hasSkill("area", 3)) mult += 0.2;
+	if (hasSkill("adj", 0)) mult += 0.05;
+	if (hasSkill("adj", 1)) mult += 0.1;
+	if (hasSkill("adj", 2)) mult += 0.15;
+	if (hasSkill("adj", 3)) mult += 0.2;
 	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
+	if (game.resetPoints > 0) mult *= RP.getEff();
 	return getClickPower() * mult;
 };
 
@@ -244,12 +247,12 @@ function update(resetScroll = false) {
 			html += "<line x1='70' y1='60' x2='77' y2='60'/>";
 		};
 		if (rawSkills >= 4) html += "<polygon points='62,42 80,50 98,42 90,60 98,78 80,70 62,78 70,60' stroke-linejoin='bevel'/>";
-		// area skill path
-		let areaSkills = getSkillsOnPath("area");
-		if (areaSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
-		if (areaSkills >= 2) html += "<path d='M 80,5 Q 88,52 135,60 Q 88,68 80,115 Q 72,68 25,60 Q 72,52 80,5'/>";
-		if (areaSkills >= 3) html += "<rect x='41' y='21' width='78' height='78' transform='rotate(45 80 60)'/>";
-		if (areaSkills >= 4) html += "<circle cx='80' cy='60' r='55'/>";
+		// adj skill path
+		let adjSkills = getSkillsOnPath("adj");
+		if (adjSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
+		if (adjSkills >= 2) html += "<path d='M 80,5 Q 88,52 135,60 Q 88,68 80,115 Q 72,68 25,60 Q 72,52 80,5'/>";
+		if (adjSkills >= 3) html += "<rect x='41' y='21' width='78' height='78' transform='rotate(45 80 60)'/>";
+		if (adjSkills >= 4) html += "<circle cx='80' cy='60' r='55'/>";
 		// SP skill path
 		let spSkills = getSkillsOnPath("sp");
 		if (spSkills > 0) {
@@ -279,14 +282,18 @@ function update(resetScroll = false) {
 		html += "<div style='background: linear-gradient(to right, #808080 0% " + percentage + "%, color-mix(in srgb, var(--bg-color), #808080) " + percentage + "% 100%)'>Progress for next SP:<br>" + formatWhole(matter) + "/" + formatWhole(next) + " matter (" + formatPercent(percentage) + ")</div></div>";
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
+				if (typeof SKILLS[path].unlocked == "function" && !SKILLS[path].unlocked()) continue;
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
-					let line = SKILLS[path].line(index);
-					html += "<div class='line' style='left: calc(50% + " + line[0] + "em - 1px); top: calc(50% + " + line[1] + "em - 1px)" + (line[2] ? "; transform: rotate(" + line[2] + "deg)" : "") + "'></div>";
+					let lines = SKILLS[path].lines(index);
+					lines.forEach(line => {
+						html += "<div class='line' style='left: calc(50%" + (line.x ? " + " + (line.x - (line.size ? line.size / 2 - 1 : 0)) + "em" : "") + " - 1px); top: calc(50%" + (line.y ? " + " + line.y + "em" : "") + " - 1px)" + (line.size ? "; width: " + line.size + "em" : "") + (line.rot ? "; transform: rotate(" + line.rot + "deg)" : "") + "'></div>";
+					});
 				};
 			};
 		};
 		for (const path in SKILLS) {
 			if (SKILLS.hasOwnProperty(path)) {
+				if (typeof SKILLS[path].unlocked == "function" && !SKILLS[path].unlocked()) continue;
 				for (let index = 0; index < SKILLS[path].data.length; index++) {
 					let pos = SKILLS[path].pos(index);
 					if (hasSkill(path, index)) {
@@ -302,10 +309,27 @@ function update(resetScroll = false) {
 		html += "<div class='skillUI' style='left: 0; top: 0'>";
 		html += "<button tabindex='-1' onclick='SP.respec()' style='background: linear-gradient(to right, #808080 0% " + game.respecProg + "%, color-mix(in srgb, var(--bg-color), #808080) " + game.respecProg + "% 100%)'>RESPEC</button>";
 		html += "</div><div class='skillUI' style='right: 0; top: 0; text-align: right'><div>";
-		html += "<button id='zoomIn'" + (game.skillZoom >= 20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
-		html += "<button id='zoomOut'" + (game.skillZoom <= -20 ? "class='on'" : "") + " tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
+		html += "<button id='zoomIn'" + (game.skillZoom >= 20 ? "class='off'" : "") + " tabindex='-1' onclick='zoomSkillTree()'>ZOOM IN</button>";
+		html += "<button id='zoomOut'" + (game.skillZoom <= -20 ? "class='off'" : "") + " tabindex='-1' onclick='zoomSkillTree(true)'>ZOOM OUT</button></div><div>";
 		html += "<button tabindex='-1' onclick='resetSkillTreeZoom()'>RESET ZOOM/SCROLL</button>";
 		html += "</div></div>";
+	} else if (game.tab == "Reset") {
+		let matter = getMatter();
+		let req = RP.getReq();
+		html += "You have <b>" + formatWhole(game.resetPoints) + " reset points (RP)</b>,<br>which are multiplying click power, adjacent power, skill point gain, and band worth by " + format(RP.getEff()) + "x";
+		let percentage = Math.round(Math.min(matter / req, 1) * 100 * 1e12) / 1e12;
+		html += "<div style='margin: 5px 0; background: linear-gradient(to right, #808080 0% " + percentage + "%, color-mix(in srgb, var(--bg-color), #808080) " + percentage + "% 100%)'>Progress for next RP:<br>" + formatWhole(matter) + "/" + formatWhole(req) + " matter (" + formatPercent(percentage) + ")</div>";
+		html += "You may only reset for <b>1 RP</b> at a time<br><button" + (matter >= req ? " onclick='RP.reset(true)'" : " class='off'") + ">Reset all previous content for <b>1 RP</b></button><hr>";
+		for (let index = 0; index < MILESTONES.length; index++) {
+			if (index > 0) html += "<br>";
+			if (!hasMilestone(index)) {
+				if (index > 0) html += "<br>";
+				html += "<b>Next Milestone:</b><div class='box' style='margin: 5px auto 0px; width: fit-content'>Obtained at <b>" + formatWhole(MILESTONES[index][0]) + " RP</b><br>" + MILESTONES[index][1] + "</div>";
+				break;
+			};
+			if (index == 0) html += "<b>Obtained Milestone Effects:</b><br>";
+			html += "<b>" + formatWhole(MILESTONES[index][0]) + " RP</b>: " + MILESTONES[index][1];
+		};
 	} else if (game.tab == "Settings") {
 		html += "Saving Settings<hr>";
 		html += "<button tabindex='-1' onclick='SAVE.wipe()'>Wipe Save</button>";

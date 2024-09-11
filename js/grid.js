@@ -227,6 +227,7 @@ const BAND = {
 	getEffect(tier, amt = BAND.getAmount(tier)) {
 		let worth = 0.25;
 		if (hasSkill("band", 2)) worth *= 2;
+		if (game.resetPoints > 0) mult *= RP.getEff();
 		return (1 + amt * worth) ** 0.5;
 	},
 	/**

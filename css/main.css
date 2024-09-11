@@ -154,6 +154,7 @@ td>div>div, th>div>div {
 	position: absolute;
 	width: 2em;
 	border: 1px solid var(--txt-color);
+	background-color: var(--txt-color);
 }
 
 .skillUI {
@@ -168,7 +169,7 @@ td>div>div, th>div>div {
 	pointer-events: auto;
 }
 
-.skillUI button.on {
+button.off {
 	background-color: var(--bg-color);
 	border-color: #808080;
 	color: #808080;
@@ -184,7 +185,7 @@ input, button {
 	font-family: 'Courier New', Courier, monospace;
 }
 
-button:not(.on) {
+button:not(.on):not(.off) {
 	cursor: pointer;
 }
 

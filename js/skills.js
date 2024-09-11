@@ -18,8 +18,9 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [0 - (index * 12 + 22), -5]},
-		line(index) {return [0 - (index * 12 + 12), 0]},
+		lines(index) {return [{x: 0 - (index * 12 + 12)}]},
 	},
+	//raw_band: {},
 	band: {
 		data: [{
 			name: "Matter Band Power",
@@ -35,9 +36,29 @@ const SKILLS = {
 			cost: 20,
 		}],
 		pos(index) {return [-5, 0 - (index * 12 + 22)]},
-		line(index) {return [-1, 0 - (index * 12 + 11), 90]},
+		lines(index) {return [{x: -1, y: 0 - (index * 12 + 11), rot: 90}]},
 	},
-	area: {
+	rhom: {
+		data: [{
+			name: "Cascading Area",
+			desc: "Adds 5% of adjacent power as rhombus power",
+			cost: 2,
+			// req: [["band", 0], ["adj", 0]],
+		}, {
+			name: "Stronger Rhombus",
+			desc: "Adds 10% of adjacent power as rhombus power",
+			cost: 4,
+			// req: [["band", 1], ["adj", 1]],
+		}],
+		pos(index) {return [index * 12 + 12, 0 - (index * 12 + 22)]},
+		lines(index) {return [
+			{x: index * 6 + 7.5, y: 0 - (index * 12 + 17), size: index * 12 + 7},
+			{x: index * 12 + 10, y: 0 - (index * 12 + 11), size: 3, rot: 135},
+			{x: index * 12 + 16, y: 0 - (index * 6 + 8.5), size: index * 12 + 7, rot: 90},
+		]},
+		unlocked() {return hasMilestone(0)},
+	},
+	adj: {
 		data: [{
 			name: "Larger Area",
 			desc: "Adds 5% of click power as adjacent power",
@@ -56,8 +77,9 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [index * 12 + 12, -5]},
-		line(index) {return [index * 12 + 10, 0]},
+		lines(index) {return [{x: index * 12 + 10}]},
 	},
+	//adj_sp: {},
 	sp: {
 		data: [{
 			name: "Skill Growth",
@@ -77,8 +99,9 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [-5, index * 12 + 12]},
-		line(index) {return [-1, index * 12 + 11, 90]},
+		lines(index) {return [{x: -1, y: index * 12 + 11, rot: 90}]},
 	},
+	//sp_raw: {},
 };
 
 /**
@@ -128,8 +151,8 @@ function zoomSkillTree(out = false) {
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) * (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) * (4 / 3) ** (1 / 3) - size[1];
 		};
-		document.getElementById("zoomOut").className = (game.skillZoom <= -20 ? "on" : "");
-		document.getElementById("zoomIn").className = (game.skillZoom >= 20 ? "on" : "");
+		document.getElementById("zoomOut").className = (game.skillZoom <= -20 ? "off" : "");
+		document.getElementById("zoomIn").className = (game.skillZoom >= 20 ? "off" : "");
 	};
 };
 
@@ -231,6 +254,7 @@ const SP = {
 		if (hasSkill("sp", 1)) mult += 0.25;
 		if (hasSkill("sp", 2)) mult += 0.3;
 		if (hasSkill("sp", 3)) mult += 0.35;
+		if (game.resetPoints > 0) mult *= RP.getEff();
 		return mult;
 	},
 	/**
