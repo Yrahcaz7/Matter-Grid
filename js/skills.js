@@ -31,6 +31,11 @@ const SKILLS = {
 			desc: "Adds " + format(0.1) + " mirror power",
 			cost: 4,
 			req: [["raw", 1], ["band", 1]],
+		}, {
+			name: "Reinforced Reflection",
+			desc: "Adds " + format(0.15) + " mirror power",
+			cost: 8,
+			req: [["raw", 2], ["band", 2]],
 		}],
 		pos(index) {return [0 - (index * 12 + 22), 0 - (index * 12 + 22)]},
 		lines(index) {return [
@@ -53,6 +58,10 @@ const SKILLS = {
 			name: "Enhanced Band Power",
 			desc: "Makes all band types worth 2x as much",
 			cost: 20,
+		}, {
+			name: "???",
+			desc: "Coming Soon",
+			cost: 999,
 		}],
 		pos(index) {return [-5, 0 - (index * 12 + 22)]},
 		lines(index) {return [{x: -1, y: 0 - (index * 12 + 11), rot: 90}]},
@@ -68,6 +77,11 @@ const SKILLS = {
 			desc: "Adds 10% of adjacent power as rhombus power",
 			cost: 4,
 			req: [["band", 1], ["adj", 1]],
+		}, {
+			name: "Adjacent Linking",
+			desc: "Adds 15% of adjacent power as rhombus power",
+			cost: 8,
+			req: [["band", 2], ["adj", 2]],
 		}],
 		pos(index) {return [index * 12 + 12, 0 - (index * 12 + 22)]},
 		lines(index) {return [
@@ -109,6 +123,11 @@ const SKILLS = {
 			desc: "Adds 2% of click power as adjacent power per unspent SP",
 			cost: 4,
 			req: [["adj", 1], ["sp", 1]],
+		}, {
+			name: "Adjacent Experience",
+			desc: "Adds 3% of click power as adjacent power per unspent SP",
+			cost: 8,
+			req: [["adj", 2], ["sp", 2]],
 		}],
 		pos(index) {return [index * 12 + 12, index * 12 + 12]},
 		lines(index) {return [
@@ -150,6 +169,11 @@ const SKILLS = {
 			desc: "Adds 3% click power mult per unspent SP",
 			cost: 4,
 			req: [["sp", 1], ["raw", 1]],
+		}, {
+			name: "Skilled Clicks",
+			desc: "Adds 4% click power mult per unspent SP",
+			cost: 8,
+			req: [["sp", 2], ["raw", 2]],
 		}],
 		pos(index) {return [0 - (index * 12 + 22), index * 12 + 12]},
 		lines(index) {return [

@@ -24,6 +24,7 @@ function getClickPower() {
 		let unspentSP = SP.getTotal() - SP.getSpent();
 		mult += 0.02 * unspentSP;
 		if (hasSkill("rawsp", 1)) mult += 0.03 * unspentSP;
+		if (hasSkill("rawsp", 2)) mult += 0.04 * unspentSP;
 	};
 	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
 	if (game.resetPoints > 0) mult *= RP.getEff();
@@ -43,6 +44,7 @@ function getAdjacentPower() {
 		let unspentSP = SP.getTotal() - SP.getSpent();
 		mult += 0.01 * unspentSP;
 		if (hasSkill("adjsp", 1)) mult += 0.02 * unspentSP;
+		if (hasSkill("adjsp", 2)) mult += 0.03 * unspentSP;
 	};
 	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
 	if (game.resetPoints > 0) mult *= RP.getEff();
@@ -56,6 +58,7 @@ function getRhombusPower() {
 	let mult = 0;
 	if (hasSkill("rhom", 0)) mult += 0.05;
 	if (hasSkill("rhom", 1)) mult += 0.1;
+	if (hasSkill("rhom", 1)) mult += 0.15;
 	return getAdjacentPower() * mult;
 };
 
@@ -66,6 +69,7 @@ function getMirrorPower() {
 	let mult = 0;
 	if (hasSkill("mir", 0)) mult += 0.05;
 	if (hasSkill("mir", 1)) mult += 0.1;
+	if (hasSkill("mir", 2)) mult += 0.15;
 	return mult;
 };
 
@@ -245,7 +249,7 @@ function update(resetScroll = false) {
 		for (let tier = 0; tier < game.grid.length - 1; tier++) {
 			let amt = BAND.getAmount(tier);
 			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete band" + (amt != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
-			if (BAND.hasEffect(tier)) html += ",<br>which are " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
+			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
 		};
 		html += "<br><br>Your click power is " + format(getClickPower());
 		let adjPower = getAdjacentPower();
@@ -270,7 +274,7 @@ function update(resetScroll = false) {
 		html += "<circle cx='80' cy='60' r='25'" + (mirSkills >= 2 ? " fill='" + color + "' stroke='none'" : "") + "/>";
 		if (rawSkills >= 1) html += "<circle cx='80' cy='60' r='10'" + (mirSkills >= 1 ? " fill='" + color + "' stroke='var(--bg-color)'" : "") + "/>";
 		if (rawSkills >= 2) {
-			html += "<g" + (mirSkills >= 2 ? " stroke='var(--bg-color)'" : "") + ">";
+			html += "<g" + (mirSkills >= 2 ? " stroke='var(--bg-color)'" : "") + (mirSkills >= 3 ? " transform='rotate(45 80 60)'" : "") + ">";
 			html += "<line x1='62' y1='42' x2='73' y2='53'/>";
 			html += "<line x1='98' y1='42' x2='87' y2='53'/>";
 			html += "<line x1='98' y1='78' x2='87' y2='67'/>";
@@ -278,7 +282,7 @@ function update(resetScroll = false) {
 			html += "</g>";
 		};
 		if (rawSkills >= 3) {
-			html += "<g" + (mirSkills >= 1 ? " stroke='var(--bg-color)'" : "") + ">";
+			html += "<g" + (mirSkills >= 1 ? " stroke='var(--bg-color)'" : "") + (mirSkills >= 3 ? " transform='rotate(45 80 60)'" : "") + ">";
 			html += "<circle cx='80' cy='60' r='3'/>";
 			html += "<line x1='80' y1='50' x2='80' y2='57'/>";
 			html += "<line x1='90' y1='60' x2='83' y2='60'/>";
@@ -296,6 +300,12 @@ function update(resetScroll = false) {
 			html += "<rect x='99' y='79' width='7.5' height='7.5' transform='rotate(45 102.75 82.75)'/>";
 			html += "<rect x='53.5' y='79' width='7.5' height='7.5' transform='rotate(45 57.25 82.75)'/>";
 		};
+		if (rhomSkills >= 3) {
+			html += "<rect x='43' y='23' width='7.5' height='7.5' transform='rotate(45 46.75 26.75)'/>";
+			html += "<rect x='109.5' y='23' width='7.5' height='7.5' transform='rotate(45 113.25 26.75)'/>";
+			html += "<rect x='109.5' y='89.5' width='7.5' height='7.5' transform='rotate(45 113.25 93.25)'/>";
+			html += "<rect x='43' y='89.5' width='7.5' height='7.5' transform='rotate(45 46.75 93.25)'/>";
+		};
 		// adj skill path
 		let adjSkills = getSkillsOnPath("adj");
 		if (adjSkills >= 1) html += "<rect x='55' y='35' width='50' height='50' transform='rotate(45 80 60)'/>";
@@ -305,6 +315,7 @@ function update(resetScroll = false) {
 		// sp, adjsp, and rawsp skill paths
 		let spSkills = getSkillsOnPath("sp");
 		let adjspSkills = getSkillsOnPath("adjsp");
+		let rawspSkills = getSkillsOnPath("rawsp");
 		if (spSkills > 0) {
 			html += "<g id='border'>";
 			if (spSkills >= 1) html += "<circle cx='10' cy='10' r='3'/>";
@@ -325,8 +336,18 @@ function update(resetScroll = false) {
 				html += "<rect x='15' y='5' width='10' height='10'/>";
 				html += "<rect x='5' y='15' width='10' height='10'/>";
 			};
-			if (adjspSkills >= 1) html += "<circle cx='25' cy='25' r='10'/>";
-			if (adjspSkills >= 2) html += "<circle cx='25' cy='25' r='3'/>";
+			if (adjspSkills >= 3) {
+				html += "<rect x='25' y='5' width='10' height='10'/>";
+				html += "<rect x='5' y='25' width='10' height='10'/>";
+			};
+			if (rawspSkills >= 1) html += "<circle cx='25' cy='25' r='10'/>";
+			if (rawspSkills >= 2) html += "<circle cx='25' cy='25' r='3'/>";
+			if (rawspSkills >= 3) {
+				html += "<line x1='18' y1='18' x2='23' y2='23'/>";
+				html += "<line x1='32' y1='18' x2='27' y2='23'/>";
+				html += "<line x1='32' y1='32' x2='27' y2='27'/>";
+				html += "<line x1='18' y1='32' x2='23' y2='27'/>";
+			};
 			html += "</g>";
 			html += "<use href='#border' x='-160' transform='scale(-1, 1)'/>";
 			html += "<use href='#border' x='-160' y='-120' transform='scale(-1, -1)'/>";
