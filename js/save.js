@@ -1,4 +1,4 @@
-let wiping = false;
+let loaded = false;
 
 const SAVE = {
 	/**
@@ -27,7 +27,7 @@ const SAVE = {
 			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
-				wiping = true;
+				loaded = false;
 				localStorage.removeItem(SAVE.ID);
 				location.reload();
 			};
@@ -88,7 +88,7 @@ const SAVE = {
 					try {
 						let parsed = JSON.parse(atob(item));
 						if (typeof parsed == "object") {
-							wiping = true;
+							loaded = false;
 							localStorage.setItem(SAVE.ID, item);
 							location.reload();
 						} else {
@@ -108,7 +108,7 @@ const SAVE = {
 	 * Saves all data to local storage.
 	 */
 	save() {
-		if (wiping) return;
+		if (!loaded) return;
 		let item = btoa(JSON.stringify(game));
 		if (item) localStorage.setItem(SAVE.ID, item);
 	},
@@ -121,6 +121,7 @@ const SAVE = {
 			let obj = JSON.parse(atob(item));
 			if (!obj.darkMode) toggleDarkMode();
 			Object.assign(game, obj);
+			loaded = true;
 		};
 	},
 	ID: "Yrahcaz7/Matter-Grid/save",
