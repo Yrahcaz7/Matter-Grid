@@ -1,4 +1,4 @@
-const TABS = ["Stats", "Skills", "Reset", "Settings"];
+const TABS = ["Stats", "Skills", "Reset", "Options"];
 
 let game = {
 	grid: [],
@@ -78,7 +78,7 @@ function getMirrorPower() {
  * @param {number} index - the index of the tab to change to.
  */
 function changeTab(index) {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	game.tab = TABS[index];
 	update(true);
 };
@@ -87,7 +87,7 @@ function changeTab(index) {
  * Toggles the mode from light to dark or vice versa.
  */
 function toggleDarkMode() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (game.darkMode) {
 		document.documentElement.style.setProperty("--bg-color", "#F0F0F0");
 		document.documentElement.style.setProperty("--txt-color", "#101010");
@@ -102,7 +102,7 @@ function toggleDarkMode() {
  * Toggles whether the right bar is collapsed.
  */
 function toggleBar() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (!document.getElementById("fullGridCSS")) {
 		let element = document.createElement("link");
 		element.id = "fullGridCSS";
@@ -139,7 +139,7 @@ function update(resetScroll = false) {
 	};
 	if (gridAnimation.on && !gridAnimation.coords.length) {
 		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
-		const getCoord = index => "calc((" + document.getElementById("grid").firstChild.offsetWidth + "px / 13) * " + (game.layer[tier][index] - 5) + ")";
+		const getCoord = index => (document.getElementById("grid").firstChild.offsetWidth / 13 * (game.layer[tier][index] - 5)) + "px";
 		let scale = (38 / 522);
 		html += "<div id='gridAnimation' class='inverse' style='left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")' oncopy='return false' onpaste='return false' oncut='return false'>";
 	} else {
@@ -214,6 +214,17 @@ function update(resetScroll = false) {
 	if (gridAnimation.on && gridAnimation.coords.length) {
 		html += "<div id='gridAnimation' style='left: 0; top: 0; opacity: 1' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
 	};
+	if (resetAnimation.on) {
+		let rect = document.getElementById("grid").firstChild.getBoundingClientRect();
+		const getCoord = (units, extra) => ((rect.width - 2) / 13 * units + extra) + "px";
+		html += "<div id='resetAnimation' style='--tier-color: " + COLORS[resetAnimation.tier % COLORS.length] + "80; --tile-size: " + ((rect.width - 2) / 13 - 2) + "px' oncopy='return false' onpaste='return false' oncut='return false'>";
+		for (let row = 12; row > -1; row--) {
+			for (let col = 12; col > -1; col--) {
+				html += "<div" + ((row == 0 || col == 0) && (row != 0 || col != 0) ? " class='header'" : "") + " style='top: " + getCoord(row, rect.y) + "; left: " + getCoord(col, rect.x) + "; animation: 2s linear " + (row + col / 5) + "s wormhole forwards'>" + resetAnimation.grid[row][col] + "</div>";
+			};
+		};
+		html += "</div>";
+	};
 	html += "<div id='bar'><div id='tabs'>";
 	for (let index = 0; index < TABS.length; index++) {
 		if (TABS[index] == game.tab) html += "<button tabindex='-1' class='on'>" + TABS[index] + "</button>";
@@ -260,19 +271,19 @@ function update(resetScroll = false) {
 		let mirPower = getMirrorPower();
 		if (mirPower > 0) html += "<br>Your mirror power is " + format(mirPower);
 		let powerLevel = (clickPower + adjPower * 4 + rhomPower * 8) * (1 + mirPower);
-		html += "<br><br>Your base power level is " + format(powerLevel);
+		html += "<br><br>Your power level is " + format(powerLevel);
 		html += "<br><br>Power level formula:<br>";
 		if (mirPower > 0) html += "(";
 		html += "click";
 		if (adjPower > 0) html += " + adjacent&times;4";
 		if (rhomPower > 0) html += " + rhombus&times;8";
-		if (mirPower > 0) html += ") * (mirror + 1)";
-		html += " = power level<br>";
+		if (mirPower > 0) html += ")(mirror + 1)";
+		html += " = level<br>";
 		if (mirPower > 0) html += "(";
 		html += format(clickPower);
 		if (adjPower > 0) html += " + " + format(adjPower) + "&times;4";
 		if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
-		if (mirPower > 0) html += ") * (" + format(mirPower) + " + 1)";
+		if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
 		html += " = " + format(powerLevel);
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
@@ -430,17 +441,18 @@ function update(resetScroll = false) {
 			if (index == 0) html += "<b>Obtained Milestone Effects:</b><br>";
 			html += "<b>" + formatWhole(MILESTONES[index][0]) + " RP</b>: " + MILESTONES[index][1];
 		};
-	} else if (game.tab == "Settings") {
-		html += "Saving Settings<hr>";
+	} else if (game.tab == "Options") {
+		html += "Saving Options<hr>";
 		html += "<button tabindex='-1' onclick='SAVE.wipe()'>Wipe Save</button>";
 		html += "<button tabindex='-1' onclick='SAVE.export()'>Export Save</button>";
 		html += "<button tabindex='-1' onclick='SAVE.import()'>Import Save</button>";
 		html += "<button tabindex='-1' onclick='SAVE.save()'>Save Game</button>";
-		html += "<hr style='margin-top: 10px'>Visual Settings<hr>";
+		html += "<hr style='margin-top: 10px'>Visual Options<hr>";
 		html += "<button tabindex='-1' onclick='toggleDarkMode()'>Toggle Dark Mode</button>";
 	};
 	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
-	if (gridAnimation.on) html += "<div id='animationCover'></div>";
+	if (resetAnimation.on) html += "<div id='animationCover'><div id='wormhole'><div></div></div></div>";
+	else if (gridAnimation.on) html += "<div id='animationCover'></div>";
 	if (resetScroll) {
 		document.body.innerHTML = html;
 		if (game.tab == "Skills") centerSkillTree();
@@ -454,7 +466,7 @@ function update(resetScroll = false) {
 	};
 	if (gridAnimation.on) {
 		if (gridAnimation.coords.length) {
-			const getCoord = index => "calc((" + document.getElementById("grid").firstChild.offsetWidth + "px / 13) * " + (gridAnimation.coords[index] - 5) + ")";
+			const getCoord = index => (document.getElementById("grid").firstChild.offsetWidth / 13 * (gridAnimation.coords[index] - 5)) + "px";
 			let scale = (38 / 522);
 			document.getElementById("gridAnimation").style = "left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")";
 		} else {

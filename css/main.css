@@ -25,11 +25,14 @@ html, body {
 	float: inline-start;
 }
 
-#grid, #gridAnimation {
-	box-sizing: border-box;
+#grid, #gridAnimation, #animationCover, #wormhole {
 	display: flex;
 	align-items: center;
     justify-content: center;
+}
+
+#grid, #gridAnimation, #resetAnimation {
+	box-sizing: border-box;
 	width: 50%;
 	height: 100%;
 	padding: 10px;
@@ -37,8 +40,12 @@ html, body {
 	-webkit-user-select: none;
 }
 
-#gridAnimation {
+#gridAnimation, #resetAnimation, #resetAnimation>div {
 	position: absolute;
+	z-index: 1;
+}
+
+#gridAnimation {
 	transition: all 0.8s 0s, opacity 0.4s 0.8s;
 }
 
@@ -46,7 +53,7 @@ html, body {
 	transition: all 0.8s 0.4s, opacity 0.4s 0s;
 }
 
-#gridAnimation>* {
+#gridAnimation>*, #resetAnimation>div {
 	background-color: var(--bg-color);
 }
 
@@ -56,13 +63,13 @@ table {
 	border-collapse: collapse;
 }
 
-th {
-	background-color: color-mix(in srgb, var(--txt-color), transparent);
+th, .header {
+	background-color: #808080 !important;
 	color: var(--bg-color);
 	cursor: default;
 }
 
-td, th {
+td, th, #resetAnimation>div {
 	border: 2px solid var(--txt-color);
 	padding: 0;
 	font-size: calc(clamp(11px, 2.75vw, 5.5vh) - 2px);
@@ -74,14 +81,19 @@ td::before, th::before {
 	padding-top: 100%;
 }
 
-td>div, th>div {
+td>div, th>div, #resetAnimation>div>div {
 	padding-top: 100%;
 	background-color: var(--tier-color);
 	line-height: 0;
 }
 
-td>div>div, th>div>div {
+td>div>div, th>div>div, #resetAnimation>div>div>div {
 	margin-top: -45%;
+}
+
+#resetAnimation>div {
+	width: var(--tile-size);
+	height: var(--tile-size);
 }
 
 #bar {
@@ -233,11 +245,42 @@ dialog {
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	z-index: 1;
+	z-index: 2;
+}
+
+#wormhole {
+	background: conic-gradient(#10F010, #10F0F0, #1010F0, #F010F0, #F01010, #F0F010, #10F010);
+	mask: radial-gradient(#000000, transparent, transparent);
+	animation: 18s ease 0s growshrink;
+}
+
+#wormhole>div {
+	width: 10%;
+	height: 10%;
+	background: radial-gradient(#F0F0F0, transparent, transparent);
+}
+
+@keyframes wormhole {
+	50% {
+		transform: rotate(180deg) scale(1, 1);
+	}
+	100% {
+		top: calc(50vh - var(--tile-size) / 2);
+		left: calc(50vw - var(--tile-size) / 2);
+		transform: rotate(360deg) scale(0, 0);
+		display: none;
+	}
+}
+
+@keyframes growshrink {
+	0% {width: 0; height: 0}
+	30% {width: 100vmin; height: 100vmin}
+	70% {width: 100vmin; height: 100vmin}
+	100% {width: 0; height: 0}
 }
 
 @media screen and (max-width: 600px) {
-	#grid, #gridAnimation {
+	#grid, #gridAnimation, #resetAnimation {
 		margin-left: -100%;
 	}
 	#bar {

@@ -5,7 +5,7 @@ const SAVE = {
 	 * Opens the save wiping menu.
 	 */
 	wipe() {
-		if (gridAnimation.on) return;
+		if (gridAnimation.on || resetAnimation.on) return;
 		if (!document.getElementById("confirm_wipe")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_wipe";
@@ -38,7 +38,7 @@ const SAVE = {
 	 * Opens the save exporting menu.
 	 */
 	export() {
-		if (gridAnimation.on) return;
+		if (gridAnimation.on || resetAnimation.on) return;
 		if (!document.getElementById("confirm_export")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_export";
@@ -61,7 +61,7 @@ const SAVE = {
 	 * Opens the save importing menu.
 	 */
 	import() {
-		if (gridAnimation.on) return;
+		if (gridAnimation.on || resetAnimation.on) return;
 		if (!document.getElementById("confirm_import")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_import";

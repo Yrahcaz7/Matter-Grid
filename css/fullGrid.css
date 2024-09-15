@@ -6,7 +6,7 @@ body {
 	width: calc(66.66% - 2.5em) !important;
 }
 
-#gridAnimation {
+#gridAnimation, #resetAnimation {
 	width: calc(100% - 2.5em) !important;
 }
 
@@ -28,7 +28,7 @@ td, th {
 	#bar {
 		width: 50% !important;
 	}
-	#grid, #gridAnimation, #bar {
+	#grid, #gridAnimation, #resetAnimation, #bar {
 		margin-left: 0;
 	}
 }

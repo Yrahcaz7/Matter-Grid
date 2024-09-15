@@ -11,6 +11,12 @@ function hasMilestone(index) {
 	return game.resetPoints >= MILESTONES[index][0];
 };
 
+let resetAnimation = {
+	tier: 0,
+	grid: [],
+	on: false,
+};
+
 const RP = {
 	/**
 	 * Gets the amount of matter required for the next reset point.
@@ -29,7 +35,7 @@ const RP = {
 	 * @param {boolean} gainPoint - if true, gains a reset point.
 	 */
 	reset(gainPoint = false) {
-		if (gridAnimation.on) return;
+		if (gridAnimation.on || resetAnimation.on) return;
 		if (!document.getElementById("confirm_reset")) {
 			let element = document.createElement("dialog");
 			element.id = "confirm_reset";
@@ -51,13 +57,33 @@ const RP = {
 			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
-				if (gainPoint) game.resetPoints++;
+				if (gainPoint) {
+					resetAnimation.tier = 0;
+					for (; resetAnimation.tier < game.layer.length; resetAnimation.tier++) {
+						if (game.layer[resetAnimation.tier].length) break;
+					};
+					let rows = document.getElementById("grid").firstChild.firstChild.children;
+					for (let row = 0; row < rows.length; row++) {
+						resetAnimation.grid[row] = [];
+						let cols = rows[row].children;
+						for (let col = 0; col < cols.length; col++) {
+							resetAnimation.grid[row][col] = cols[col].innerHTML;
+						};
+					};
+					resetAnimation.on = true;
+					setTimeout(() => {
+						document.getElementById("resetAnimation").remove();
+						document.getElementById("animationCover").remove();
+						resetAnimation.on = false;
+					}, 18000);
+					game.resetPoints++;
+				};
 				game.grid = [];
 				game.layer = [[0, 0]];
 				game.skills = {};
 				game.skillZoom = 0;
 				game.respecProg = 0;
-				update(true);
+				update();
 			};
 			document.getElementById("confirm_reset").append(element);
 		};

@@ -204,7 +204,7 @@ function getSkillTreeStyle() {
  * Centers the skill tree display.
  */
 function centerSkillTree() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (document.getElementById("skillContainer") && document.getElementById("skillTree")) {
 		document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("skillContainer").offsetWidth) / 2;
 		document.getElementById("skillContainer").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("skillContainer").offsetHeight) / 2;
@@ -216,7 +216,7 @@ function centerSkillTree() {
  * @param {boolean} out - if true, zooms out, not in.
  */
 function zoomSkillTree(out = false) {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (document.getElementById("skillContainer")) {
 		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
 		if (out) {
@@ -241,7 +241,7 @@ function zoomSkillTree(out = false) {
  * Resets the zoom and scroll of the skill tree display.
  */
 function resetSkillTreeZoom() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	game.skillZoom = 0;
 	document.getElementById("skillTree").style = getSkillTreeStyle();
 	centerSkillTree();
@@ -318,7 +318,7 @@ function getSkillsOnPath(path) {
  * @param {number} index - the index of the skill to check.
  */
 function buySkill(path, index) {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (skillUnlocked(path, index) && !hasSkill(path, index) && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
 		game.skills[path][index] = SKILLS[path].data[index].cost;
 		update();
