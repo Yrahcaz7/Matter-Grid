@@ -100,9 +100,10 @@ function toggleDarkMode() {
 
 /**
  * Toggles whether the right bar is collapsed.
+ * @param {boolean} force - if true, always works even during animations.
  */
-function toggleBar() {
-	if (gridAnimation.on || resetAnimation.on) return;
+function toggleBar(force = false) {
+	if (!force && (gridAnimation.on || resetAnimation.on)) return;
 	if (!document.getElementById("fullGridCSS")) {
 		let element = document.createElement("link");
 		element.id = "fullGridCSS";
@@ -220,7 +221,8 @@ function update(resetScroll = false) {
 		html += "<div id='resetAnimation' style='--tier-color: " + COLORS[resetAnimation.tier % COLORS.length] + "80; --tile-size: " + ((rect.width - 2) / 13 - 2) + "px' oncopy='return false' onpaste='return false' oncut='return false'>";
 		for (let row = 12; row > -1; row--) {
 			for (let col = 12; col > -1; col--) {
-				html += "<div" + ((row == 0 || col == 0) && (row != 0 || col != 0) ? " class='header'" : "") + " style='top: " + getCoord(row, rect.y) + "; left: " + getCoord(col, rect.x) + "; animation: 2s linear " + (row + col / 5) + "s wormhole forwards'>" + resetAnimation.grid[row][col] + "</div>";
+				let time = (row * 0.8 + col * 0.2);
+				html += "<div" + ((row == 0 || col == 0) && (row != 0 || col != 0) ? " class='header'" : "") + " style='top: " + getCoord(row, rect.y) + "; left: " + getCoord(col, rect.x) + "; animation: " + (2 / ((time + 1) ** 0.4)) + "s linear " + (time / ((time + 1) ** 0.25)) + "s wormhole forwards'>" + resetAnimation.grid[row][col] + "</div>";
 			};
 		};
 		html += "</div>";

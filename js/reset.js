@@ -1,6 +1,6 @@
 const MILESTONES = [
 	[1, "Unlocks secondary skill paths"],
-	[2, "Coming Soon"],
+	[2, "Coming soon"],
 ];
 
 /**
@@ -15,6 +15,18 @@ let resetAnimation = {
 	tier: 0,
 	grid: [],
 	on: false,
+};
+
+/**
+ * Performs a reset with no shenanigans.
+ */
+function reset() {
+	game.grid = [];
+	game.layer = [[0, 0]];
+	game.skills = {};
+	game.skillZoom = 0;
+	game.respecProg = 0;
+	update();
 };
 
 const RP = {
@@ -57,6 +69,7 @@ const RP = {
 			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
+				loaded = false;
 				if (gainPoint) {
 					resetAnimation.tier = 0;
 					for (; resetAnimation.tier < game.layer.length; resetAnimation.tier++) {
@@ -75,15 +88,17 @@ const RP = {
 						document.getElementById("resetAnimation").remove();
 						document.getElementById("animationCover").remove();
 						resetAnimation.on = false;
-					}, 18000);
+					}, 8000);
 					game.resetPoints++;
+					if (Math.max(document.documentElement.clientWidth, window.innerWidth) <= 600 && !document.getElementById("fullGridCSS")) {
+						toggleBar(true);
+						requestAnimationFrame(() => requestAnimationFrame(() => reset()));
+					} else {
+						reset();
+					};
+				} else {
+					reset();
 				};
-				game.grid = [];
-				game.layer = [[0, 0]];
-				game.skills = {};
-				game.skillZoom = 0;
-				game.respecProg = 0;
-				update();
 			};
 			document.getElementById("confirm_reset").append(element);
 		};

@@ -10,7 +10,7 @@ body {
 	width: calc(100% - 2.5em) !important;
 }
 
-td, th {
+td, th, #resetAnimation>div {
 	font-size: calc(clamp(11px, 5.5vw, 5.5vh) - 2px) !important;
 }
 
