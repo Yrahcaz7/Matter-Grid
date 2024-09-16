@@ -112,6 +112,25 @@ function moveLayer(tier, row, col) {
 };
 
 /**
+ * Starts a layer specified by its containing tier, row, and col if able. Else, calls `moveLayer`.
+ * @param {number} tier - the tier of the layer to move.
+ * @param {number} row - the destination row of the movement.
+ * @param {number} col - the destination column of the movement.
+ */
+function startLayer(tier, row, col) {
+	for (let r = 0; r < 12; r++) {
+		for (let c = 0; c < 12; c++) {
+			if (game.grid[tier + 1][r][c] == -1 && !(r == row && c == col)) {
+				moveLayer(tier + 1, row, col);
+				return false;
+			};
+		};
+	};
+	game.grid[tier + 1][row][col] = -1;
+	return true;
+};
+
+/**
  * Enters the layer specified by its tier, row, and column.
  * @param {number} tier - the tier of the layer to enter.
  * @param {number} row - the row of the laye to enterr.
@@ -119,17 +138,6 @@ function moveLayer(tier, row, col) {
  */
 function enterLayer(tier, row, col) {
 	if (gridAnimation.on || resetAnimation.on) return;
-	if (game.grid[tier + 1][row][col] < 1) {
-		for (let r = 0; r < 12; r++) {
-			for (let c = 0; c < 12; c++) {
-				if (game.grid[tier + 1][r][c] == -1 && !(r == row && c == col)) {
-					moveLayer(tier + 1, row, col);
-					return;
-				};
-			};
-		};
-		game.grid[tier + 1][row][col] = -1;
-	};
 	game.layer[tier] = [row, col];
 	gridAnimation.grid = document.getElementById("grid").innerHTML;
 	gridAnimation.coords = [];
@@ -153,25 +161,58 @@ function raiseNodeValue(row, col, amt) {
 };
 
 /**
- * Clicks the node with the specified row and column in the active tier 0 layer.
+ * Clicks the node with the specified tier, row, and column in the active layer.
+ * @param {number} tier - the tier of the node to click.
  * @param {number} row - the row of the node to click.
  * @param {number} col - the column of the node to click.
  */
-function clickNode(row, col) {
+function clickNode(tier, row, col) {
 	if (gridAnimation.on || resetAnimation.on) return;
-	let raises = [[row, col, getClickPower()]];
-	// rightward path powers
-	let adjPow = getAdjacentPower();
-	if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
-	let rhomPow = getRhombusPower();
-	if (rhomPow > 0) raises.push([row - 2, col, rhomPow], [row - 1, col - 1, rhomPow], [row - 1, col + 1, rhomPow], [row, col - 2, rhomPow], [row, col + 2, rhomPow], [row + 1, col - 1, rhomPow], [row + 1, col + 1, rhomPow], [row + 2, col, rhomPow]);
-	// other path powers
-	let mirPower = getMirrorPower();
-	for (let index = 0; index < raises.length; index++) {
-		raiseNodeValue(raises[index][0], raises[index][1], raises[index][2]);
-		if (mirPower > 0) raiseNodeValue(11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
+	if (tier > game.activePowTier) {
+		if (game.grid[tier + 1][row][col] < 1 && !startLayer(tier - 1, row, col)) return;
+		enterLayer(tier - 1, row, col);
+	} else if (tier > 0) {
+		if (game.grid[tier + 1][row][col] < 1 && !startLayer(tier - 1, row, col)) return;
+		let amt = (tier == 1 ? getTierPowerA() : 0) * (144 ** tier);
+		let coords = [tier, row, col];
+		while (amt > 0) {
+			let val = game.grid[coords[0]][coords[1]][coords[2]];
+			if (val >= 0 && amt >= (1 - val) * (144 ** coords[0])) {
+				amt -= (1 - val) * (144 ** coords[0]);
+				game.grid[coords[0]][coords[1]][coords[2]] = 1;
+				coords[2]++;
+				if (coords[2] >= 12) coords = [coords[0], coords[1] + 1, coords[2] - 12];
+				if (coords[1] >= 12) coords = [coords[0] + 1, 0, 0];
+				if (coords[0] >= tier) {
+					game.grid[tier][row][col] = 1;
+					for (let index = 0; index < tier; index++) {
+						game.grid[index] = getStartLayer();
+					};
+					break;
+				};
+			} else if (coords[0] > 0) {
+				coords = [coords[0] - 1, 0, 0];
+			} else {
+				raiseNodeValue(coords[1], coords[2], amt);
+				break;
+			};
+		};
+		update();
+	} else {
+		let raises = [[row, col, getClickPower()]];
+		// rightward path powers
+		let adjPow = getAdjacentPower();
+		if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
+		let rhomPow = getRhombusPower();
+		if (rhomPow > 0) raises.push([row - 2, col, rhomPow], [row - 1, col - 1, rhomPow], [row - 1, col + 1, rhomPow], [row, col - 2, rhomPow], [row, col + 2, rhomPow], [row + 1, col - 1, rhomPow], [row + 1, col + 1, rhomPow], [row + 2, col, rhomPow]);
+		// other path powers
+		let mirPower = getMirrorPower();
+		for (let index = 0; index < raises.length; index++) {
+			raiseNodeValue(raises[index][0], raises[index][1], raises[index][2]);
+			if (mirPower > 0) raiseNodeValue(11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
+		};
+		update();
 	};
-	update();
 };
 
 /**

@@ -1,6 +1,7 @@
 const MILESTONES = [
 	[1, "Unlocks secondary skill paths"],
-	[2, "Coming soon"],
+	[2, "Adds 0.1% of power level as A-tier power per RP", () => game.resetPoints / 1000],
+	[4, "Coming soon"],
 ];
 
 /**
@@ -9,6 +10,14 @@ const MILESTONES = [
  */
 function hasMilestone(index) {
 	return game.resetPoints >= MILESTONES[index][0];
+};
+
+/**
+ * Gets the effect of a milestone specified by its index.
+ * @param {number} index - the index of the milestone to get the effect of.
+ */
+function getMilestoneEffect(index) {
+	return MILESTONES[index][2]();
 };
 
 let resetAnimation = {
@@ -69,7 +78,6 @@ const RP = {
 			element.tabIndex = -1;
 			element.innerHTML = "Yes";
 			element.onclick = () => {
-				loaded = false;
 				if (gainPoint) {
 					resetAnimation.tier = 0;
 					for (; resetAnimation.tier < game.layer.length; resetAnimation.tier++) {

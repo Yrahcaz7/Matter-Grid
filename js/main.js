@@ -8,6 +8,7 @@ let game = {
 	skillZoom: 0,
 	respecProg: 0,
 	resetPoints: 0,
+	activePowTier: 0,
 	darkMode: true,
 };
 
@@ -71,6 +72,27 @@ function getMirrorPower() {
 	if (hasSkill("mir", 1)) mult += 0.1;
 	if (hasSkill("mir", 2)) mult += 0.15;
 	return mult;
+};
+
+/**
+ * Gets the player's power level.
+ * @param {number} clickPower - overrides the click power in the formula.
+ * @param {number} adjPower - overrides the adjacent power in the formula.
+ * @param {number} rhomPower - overrides the rhombus power in the formula.
+ * @param {number} mirPower - overrides the mirror power in the formula.
+ */
+function getPowerLevel(clickPower = getClickPower(), adjPower = getAdjacentPower(), rhomPower = getRhombusPower(), mirPower = getMirrorPower()) {
+	return (clickPower + adjPower * 4 + rhomPower * 8) * (1 + mirPower);
+};
+
+/**
+ * Gets the player's A-tier power mult.
+ * @param {number} powerLevel - overrides the power level in the formula.
+ */
+function getTierPowerA(powerLevel = getPowerLevel()) {
+	let mult = 0;
+	if (hasMilestone(1)) mult += getMilestoneEffect(1);
+	return powerLevel * mult;
 };
 
 /**
@@ -200,10 +222,7 @@ function update(resetScroll = false) {
 				} else if (game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] == -1) {
 					prog = game.grid[tier][row][col];
 				};
-				html += "<td" + (tier == 0 ?
-					(prog < 1 ? " onclick='clickNode(" + row + ", " + col + ")' style='cursor: pointer'" : "")
-					: " onclick='enterLayer(" + (tier - 1) + ", " + row + ", " + col + ")' style='cursor: pointer'"
-				) + ">";
+				html += "<td" + (tier > game.activePowTier || prog < 1 ? " onclick='clickNode(" + tier + ", " + row + ", " + col + ")' style='cursor: pointer'" : "") + ">";
 				if (prog == 1) html += "<div><div>&check;</div></div>";
 				else if (prog > 0) html += "<div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + "></div>";
 				html += "</td>";
@@ -272,8 +291,10 @@ function update(resetScroll = false) {
 		if (rhomPower > 0) html += "<br>Your rhombus power is " + format(rhomPower);
 		let mirPower = getMirrorPower();
 		if (mirPower > 0) html += "<br>Your mirror power is " + format(mirPower);
-		let powerLevel = (clickPower + adjPower * 4 + rhomPower * 8) * (1 + mirPower);
+		let powerLevel = getPowerLevel(clickPower, adjPower, rhomPower, mirPower);
 		html += "<br><br>Your power level is " + format(powerLevel);
+		let tierPowA = getTierPowerA(powerLevel);
+		if (tierPowA > 0) html += "<br>Your A-tier power is " + format(tierPowA);
 		html += "<br><br>Power level formula:<br>";
 		if (mirPower > 0) html += "(";
 		html += "click";
@@ -287,6 +308,12 @@ function update(resetScroll = false) {
 		if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
 		if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
 		html += " = " + format(powerLevel);
+		if (tierPowA > 0) {
+			html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
+			html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
+			html += "<option value='1'" + (tier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
+			html += "</select>";
+		};
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
