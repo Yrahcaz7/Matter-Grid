@@ -55,13 +55,13 @@ const SKILLS = {
 			desc: "Unlocks the " + colorText(getTierName(1), 1) + " band effect",
 			cost: 10,
 		}, {
-			name: "Enhanced Band Power",
-			desc: "Makes all band types worth 2x as much",
+			name: "Band Power Enhancement",
+			desc: "Adds +100% band worth for all band types",
 			cost: 20,
 		}, {
-			name: "???",
-			desc: "Coming Soon",
-			cost: 999,
+			name: "Band Power Refinement",
+			desc: "Adds +100% band worth for all band types",
+			cost: 40,
 		}],
 		pos(index) {return [-5, 0 - (index * 12 + 22)]},
 		lines(index) {return [{x: -1, y: 0 - (index * 12 + 11), rot: 90}]},
@@ -115,17 +115,17 @@ const SKILLS = {
 	adjsp: {
 		data: [{
 			name: "Leftover Area",
-			desc: "Adds 1% of click power as adjacent power per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
 			cost: 2,
 			req: [["adj", 0], ["sp", 0]],
 		}, {
 			name: "Liquid Links",
-			desc: "Adds 2% of click power as adjacent power per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
 			cost: 4,
 			req: [["adj", 1], ["sp", 1]],
 		}, {
 			name: "Adjacent Experience",
-			desc: "Adds 3% of click power as adjacent power per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
 			cost: 8,
 			req: [["adj", 2], ["sp", 2]],
 		}],
@@ -161,17 +161,17 @@ const SKILLS = {
 	rawsp: {
 		data: [{
 			name: "Leftover Clicks",
-			desc: "Adds 2% click power mult per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
 			cost: 2,
 			req: [["sp", 0], ["raw", 0]],
 		}, {
 			name: "Oozing Clicks",
-			desc: "Adds 3% click power mult per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
 			cost: 4,
 			req: [["sp", 1], ["raw", 1]],
 		}, {
 			name: "Skilled Clicks",
-			desc: "Adds 4% click power mult per unspent SP",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
 			cost: 8,
 			req: [["sp", 2], ["raw", 2]],
 		}],
@@ -218,7 +218,7 @@ function centerSkillTree() {
 function zoomSkillTree(out = false) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	if (document.getElementById("skillContainer")) {
-		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
+		let size = [document.getElementById("skillContainer").getBoundingClientRect().width / 2, document.getElementById("skillContainer").offsetHeight / 2];
 		if (out) {
 			if (game.skillZoom <= -20) return;
 			game.skillZoom--;
@@ -258,9 +258,9 @@ function adjustSkillUI() {
 		if (skillUI.length) {
 			let width = 0;
 			for (let index = 0; index < skillUI.length; index++) {
-				width += skillUI[index].offsetWidth;
+				width += skillUI[index].getBoundingClientRect().width;
 			};
-			if (document.getElementById("skillContainer").offsetWidth + 15 < width) {
+			if (document.getElementById("skillContainer").getBoundingClientRect().width + 15 < width) {
 				let respec = skillUI[0].children[0];
 				if (respec) {
 					skillUI[1].innerHTML += "<div class='skillUI' style='right: 10px; padding: 0'>" + respec.outerHTML + "</div>";

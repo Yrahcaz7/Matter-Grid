@@ -22,6 +22,28 @@ function getStartLayer() {
 };
 
 /**
+ * Checks if the player has any complete nodes of tier higher than the tier specified.
+ * @param {number} tier - the tier to check above.
+ */
+function hasHigherTier(tier) {
+	for (let index = tier + 1; index < game.grid.length; index++) {
+		if (game.grid[index][0][0] == 1) return true;
+	};
+	return false;
+};
+
+/**
+ * Checks if the player is in an incomplete layer specified by its tier.
+ * @param {number} tier 
+ */
+function isInIncompleteLayer(tier) {
+	for (let index = tier + 1; index < game.grid.length; index++) {
+		if (game.grid[index][game.layer[index - 1][0]][game.layer[index - 1][1]] >= 0) return false;
+	};
+	return true;
+};
+
+/**
  * Goes up to the specified tier.
  * @param {number} tier - the tier to go to.
  */
@@ -169,10 +191,10 @@ function raiseNodeValue(row, col, amt) {
 function clickNode(tier, row, col) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	if (tier > game.activePowTier) {
-		if (game.grid[tier + 1][row][col] < 1 && !startLayer(tier - 1, row, col)) return;
+		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier - 1, row, col)) return;
 		enterLayer(tier - 1, row, col);
 	} else if (tier > 0) {
-		if (game.grid[tier + 1][row][col] < 1 && !startLayer(tier - 1, row, col)) return;
+		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier - 1, row, col)) return;
 		let amt = (tier == 1 ? getTierPowerA() : 0) * (144 ** tier);
 		let coords = [tier, row, col];
 		while (amt > 0) {
@@ -281,10 +303,11 @@ const BAND = {
 	 * @param {number} amt - overrides the band amount in the formula.
 	 */
 	getEffect(tier, amt = BAND.getAmount(tier)) {
-		let mult = 0.25;
-		if (hasSkill("band", 2)) mult *= 2;
+		let mult = 1;
+		if (hasSkill("band", 2)) mult += 1;
+		if (hasSkill("band", 3)) mult += 1;
 		if (game.resetPoints > 0) mult *= RP.getEff();
-		return (1 + amt * mult) ** 0.5;
+		return (1 + amt * mult / 4) ** 0.5;
 	},
 	/**
 	 * Gets a band effect description specified by its tier.

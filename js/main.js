@@ -22,10 +22,10 @@ function getClickPower() {
 	if (hasSkill("raw", 2)) mult += 0.2;
 	if (hasSkill("raw", 3)) mult += 0.25;
 	if (hasSkill("rawsp", 0)) {
-		let unspentSP = SP.getTotal() - SP.getSpent();
-		mult += 0.02 * unspentSP;
-		if (hasSkill("rawsp", 1)) mult += 0.03 * unspentSP;
-		if (hasSkill("rawsp", 2)) mult += 0.04 * unspentSP;
+		let SPfactor = Math.log(SP.getTotal() + 1);
+		mult += 0.03 * SPfactor;
+		if (hasSkill("rawsp", 1)) mult += 0.03 * SPfactor;
+		if (hasSkill("rawsp", 2)) mult += 0.03 * SPfactor;
 	};
 	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
 	if (game.resetPoints > 0) mult *= RP.getEff();
@@ -42,10 +42,10 @@ function getAdjacentPower() {
 	if (hasSkill("adj", 2)) mult += 0.15;
 	if (hasSkill("adj", 3)) mult += 0.2;
 	if (hasSkill("adjsp", 0)) {
-		let unspentSP = SP.getTotal() - SP.getSpent();
-		mult += 0.01 * unspentSP;
-		if (hasSkill("adjsp", 1)) mult += 0.02 * unspentSP;
-		if (hasSkill("adjsp", 2)) mult += 0.03 * unspentSP;
+		let SPfactor = Math.log(SP.getTotal() + 1);
+		mult += 0.02 * SPfactor;
+		if (hasSkill("adjsp", 1)) mult += 0.02 * SPfactor;
+		if (hasSkill("adjsp", 2)) mult += 0.02 * SPfactor;
 	};
 	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
 	if (game.resetPoints > 0) mult *= RP.getEff();
@@ -162,8 +162,9 @@ function update(resetScroll = false) {
 	};
 	if (gridAnimation.on && !gridAnimation.coords.length) {
 		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
-		const getCoord = index => (document.getElementById("grid").firstChild.offsetWidth / 13 * (game.layer[tier][index] - 5)) + "px";
-		let scale = (38 / 522);
+		let gridWidth = document.getElementById("grid").firstChild.getBoundingClientRect().width;
+		const getCoord = index => ((gridWidth - 2) / 13 * (game.layer[tier][index] - 5)) + "px";
+		let scale = (((gridWidth - 2) / 13 - 2) / gridWidth);
 		html += "<div id='gridAnimation' class='inverse' style='left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")' oncopy='return false' onpaste='return false' oncut='return false'>";
 	} else {
 		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>";
@@ -183,11 +184,11 @@ function update(resetScroll = false) {
 					};
 				};
 				if (complete)  html += "<td onclick='completeLayer(" + tier + ")' style='cursor: pointer'>&larr;</td>";
-				else if (game.grid[tier + 1][0][0] == 1) html += "<td onclick='goUpToTier(" + (tier + 1) + ")' style='cursor: pointer'>&larr;</td>";
+				else if (hasHigherTier(tier)) html += "<td onclick='goUpToTier(" + (tier + 1) + ")' style='cursor: pointer'>&larr;</td>";
 				else html += "<td>&nbsp;</td>";
 			} else if (row < 0) {
 				let prog = 1;
-				if (game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] == -1) {
+				if (isInIncompleteLayer(tier)) {
 					prog = 0;
 					for (let r = 0; r < 12; r++) {
 						if (game.grid[tier][r][col] == 1) prog++;
@@ -199,7 +200,7 @@ function update(resetScroll = false) {
 				else html += "<th scope='col'>&nbsp;</th>";
 			} else if (col < 0) {
 				let prog = 1;
-				if (game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] == -1) {
+				if (isInIncompleteLayer(tier)) {
 					prog = 0;
 					for (let c = 0; c < 12; c++) {
 						if (game.grid[tier][row][c] == 1) prog++;
@@ -211,16 +212,18 @@ function update(resetScroll = false) {
 				else html += "<th>&nbsp;</th>";
 			} else {
 				let prog = 1;
-				if (game.grid[tier][row][col] == -1) {
-					prog = 0;
-					for (let r = 0; r < 12; r++) {
-						for (let c = 0; c < 12; c++) {
-							if (game.grid[tier - 1][r][c] == 1) prog++;
+				if (isInIncompleteLayer(tier)) {
+					if (game.grid[tier][row][col] == -1) {
+						prog = 0;
+						for (let r = 0; r < 12; r++) {
+							for (let c = 0; c < 12; c++) {
+								if (game.grid[tier - 1][r][c] == 1) prog++;
+							};
 						};
+						prog /= 144;
+					} else {
+						prog = game.grid[tier][row][col];
 					};
-					prog /= 144;
-				} else if (game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] == -1) {
-					prog = game.grid[tier][row][col];
 				};
 				html += "<td" + (tier > game.activePowTier || prog < 1 ? " onclick='clickNode(" + tier + ", " + row + ", " + col + ")' style='cursor: pointer'" : "") + ">";
 				if (prog == 1) html += "<div><div>&check;</div></div>";
@@ -308,12 +311,11 @@ function update(resetScroll = false) {
 		if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
 		if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
 		html += " = " + format(powerLevel);
-		if (tierPowA > 0) {
-			html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
-			html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
-			html += "<option value='1'" + (tier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
-			html += "</select>";
-		};
+		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
+		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
+		if (tierPowA > 0) html += "<option value='1'" + (tier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
+		html += "</select>";
+		html += "<br>This makes you click for " + colorText(getTierName(game.activePowTier), game.activePowTier) + " progress equal to your " + (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-tier power" : "click power");
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
@@ -495,8 +497,9 @@ function update(resetScroll = false) {
 	};
 	if (gridAnimation.on) {
 		if (gridAnimation.coords.length) {
-			const getCoord = index => (document.getElementById("grid").firstChild.offsetWidth / 13 * (gridAnimation.coords[index] - 5)) + "px";
-			let scale = (38 / 522);
+			let gridWidth = document.getElementById("grid").firstChild.getBoundingClientRect().width;
+			const getCoord = index => ((gridWidth - 2) / 13 * (gridAnimation.coords[index] - 5)) + "px";
+			let scale = (((gridWidth - 2) / 13 - 2) / gridWidth);
 			document.getElementById("gridAnimation").style = "left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")";
 		} else {
 			document.getElementById("gridAnimation").style = "left: 0; top: 0; opacity: 1; transform: scale(1, 1)";
