@@ -53,6 +53,15 @@ function getAdjacentPower() {
 };
 
 /**
+ * Gets the player's adjacent A-power.
+ */
+function getAdjacentAPower() {
+	let mult = 0;
+	if (hasMilestone(3)) mult += getMilestoneEffect(3);
+	return getAdjacentPower() * mult;
+};
+
+/**
  * Gets the player's rhombus power.
  */
 function getRhombusPower() {
@@ -76,23 +85,18 @@ function getMirrorPower() {
 
 /**
  * Gets the player's power level.
- * @param {number} clickPower - overrides the click power in the formula.
- * @param {number} adjPower - overrides the adjacent power in the formula.
- * @param {number} rhomPower - overrides the rhombus power in the formula.
- * @param {number} mirPower - overrides the mirror power in the formula.
  */
-function getPowerLevel(clickPower = getClickPower(), adjPower = getAdjacentPower(), rhomPower = getRhombusPower(), mirPower = getMirrorPower()) {
-	return (clickPower + adjPower * 4 + rhomPower * 8) * (1 + mirPower);
+function getPowerLevel() {
+	return (getClickPower() + getAdjacentPower() * 4 + getRhombusPower() * 8) * (1 + getMirrorPower());
 };
 
 /**
  * Gets the player's A-tier power mult.
- * @param {number} powerLevel - overrides the power level in the formula.
  */
-function getTierPowerA(powerLevel = getPowerLevel()) {
+function getTierPowerA() {
 	let mult = 0;
 	if (hasMilestone(1)) mult += getMilestoneEffect(1);
-	return powerLevel * mult;
+	return getPowerLevel() * mult;
 };
 
 /**
@@ -287,30 +291,37 @@ function update(resetScroll = false) {
 			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
 		};
 		let clickPower = getClickPower();
-		html += "<br><br>Your click power is " + format(clickPower);
 		let adjPower = getAdjacentPower();
-		if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
 		let rhomPower = getRhombusPower();
-		if (rhomPower > 0) html += "<br>Your rhombus power is " + format(rhomPower);
 		let mirPower = getMirrorPower();
-		if (mirPower > 0) html += "<br>Your mirror power is " + format(mirPower);
-		let powerLevel = getPowerLevel(clickPower, adjPower, rhomPower, mirPower);
-		html += "<br><br>Your power level is " + format(powerLevel);
-		let tierPowA = getTierPowerA(powerLevel);
-		if (tierPowA > 0) html += "<br>Your A-tier power is " + format(tierPowA);
-		html += "<br><br>Power level formula:<br>";
-		if (mirPower > 0) html += "(";
-		html += "click";
-		if (adjPower > 0) html += " + adjacent&times;4";
-		if (rhomPower > 0) html += " + rhombus&times;8";
-		if (mirPower > 0) html += ")(mirror + 1)";
-		html += " = level<br>";
-		if (mirPower > 0) html += "(";
-		html += format(clickPower);
-		if (adjPower > 0) html += " + " + format(adjPower) + "&times;4";
-		if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
-		if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
-		html += " = " + format(powerLevel);
+		let powerLevel = getPowerLevel();
+		let tierPowA = getTierPowerA();
+		if (game.activePowTier == 0) {
+			html += "<br><br>Your click power is " + format(clickPower);
+			if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
+			if (rhomPower > 0) html += "<br>Your rhombus power is " + format(rhomPower);
+			if (mirPower > 0) html += "<br>Your mirror power is " + format(mirPower);
+			html += "<br><br>Your power level is " + format(powerLevel);
+			if (tierPowA > 0) html += "<br>Your A-tier power is " + format(tierPowA);
+			html += "<br><br>Power level formula:<br>";
+			if (mirPower > 0) html += "(";
+			html += "click";
+			if (adjPower > 0) html += " + adjacent&times;4";
+			if (rhomPower > 0) html += " + rhombus&times;8";
+			if (mirPower > 0) html += ")(mirror + 1)";
+			html += " = level<br>";
+			if (mirPower > 0) html += "(";
+			html += format(clickPower);
+			if (adjPower > 0) html += " + " + format(adjPower) + "&times;4";
+			if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
+			if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
+			html += " = " + format(powerLevel);
+		} else if (game.activePowTier == 1) {
+			html += "<br><br>Your A-tier power is " + format(tierPowA);
+			if (adjPower > 0) html += "<br>Your adjacent A-power is " + format(getAdjacentAPower());
+			if (rhomPower > 0) html += "<br>Your rhombus A-power is " + format(0);
+			if (mirPower > 0) html += "<br>Your mirror A-power is " + format(0);
+		};
 		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
 		if (tierPowA > 0) html += "<option value='1'" + (tier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";

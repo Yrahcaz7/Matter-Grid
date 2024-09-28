@@ -1,7 +1,9 @@
 const MILESTONES = [
 	[1, "Unlocks secondary skill paths"],
 	[2, "Adds 0.1% of power level as A-tier power per RP", () => game.resetPoints / 1000],
-	[3, "Coming soon"],
+	[3, "Adds 1 free SP per RP", () => game.resetPoints],
+	[4, "Adds 0.1% of adjacent power as adjacent A-power per RP", () => game.resetPoints / 1000],
+	[5, "Coming soon"],
 ];
 
 /**

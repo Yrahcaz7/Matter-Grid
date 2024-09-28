@@ -353,18 +353,26 @@ const SP = {
 		return mult;
 	},
 	/**
+	 * Gets the player's extra skill points.
+	 */
+	getExtra() {
+		let extra = 0;
+		if (hasMilestone(2)) extra += getMilestoneEffect(2);
+		return extra;
+	},
+	/**
 	 * Gets the player's total skill points.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getTotal(matter = getMatter()) {
-		return Math.floor((matter ** 0.5) / 2 * SP.getMult());
+		return Math.floor((matter ** 0.5) / 2 * SP.getMult()) + SP.getExtra();
 	},
 	/**
 	 * Gets the amount of matter required for the previous skill point.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getPrevAt(matter = getMatter()) {
-		let amt = SP.getTotal(matter);
+		let amt = SP.getTotal(matter) - SP.getExtra();
 		return Math.ceil((amt / SP.getMult() * 2) ** 2);
 	},
 	/**
@@ -372,7 +380,7 @@ const SP = {
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getNextAt(matter = getMatter()) {
-		let amt = SP.getTotal(matter) + 1;
+		let amt = SP.getTotal(matter) - SP.getExtra() + 1;
 		return Math.ceil((amt / SP.getMult() * 2) ** 2);
 	},
 	/**
