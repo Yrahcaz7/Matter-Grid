@@ -1,4 +1,4 @@
-const COLORS = ["#10F010", "#10F0F0", "#1010F0", "#F010F0", "#F01010", "#F0F010"];
+const COLORS = ["#40F040", "#40F0F0", "#4040F0", "#F040F0", "#F04040", "#F0F040"];
 
 /**
  * Returns a whole number formatted as a string.

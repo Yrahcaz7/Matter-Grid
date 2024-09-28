@@ -179,9 +179,9 @@ function update(resetScroll = false) {
 		for (let row = -1; row < 12; row++) {
 			if (row < 0 && col < 0) {
 				let complete = true;
-				check: for (let r = 0; r < 12; r++) {
-					for (let c = 0; c < 12; c++) {
-						if (game.grid[currentTier][r][c] < 1) {
+				check: for (let checkRow = 0; checkRow < 12; checkRow++) {
+					for (let checkCol = 0; checkCol < 12; checkCol++) {
+						if (game.grid[currentTier][checkRow][checkCol] < 1) {
 							complete = false;
 							break check;
 						};
@@ -219,9 +219,9 @@ function update(resetScroll = false) {
 				if (isInIncompleteLayer(currentTier)) {
 					if (game.grid[currentTier][row][col] == -1) {
 						prog = 0;
-						for (let r = 0; r < 12; r++) {
-							for (let c = 0; c < 12; c++) {
-								if (game.grid[currentTier - 1][r][c] == 1) prog++;
+						for (let checkRow = 0; checkRow < 12; checkRow++) {
+							for (let checkCol = 0; checkCol < 12; checkCol++) {
+								if (game.grid[currentTier - 1][checkRow][checkCol] == 1) prog++;
 							};
 						};
 						prog /= 144;
@@ -305,7 +305,7 @@ function update(resetScroll = false) {
 			if (bestRegions[index - 1] == -1) {
 				amt += strayMatterProgTotal;
 				for (let tier = 1; tier < index; tier++) {
-					amt += activeRegions[tier] * (144 ** tier);
+					amt += getNodeValues(tier, prog => prog > 0);
 				};
 			} else {
 				amt += bestRegions[index - 1] * (144 ** (index - 1));
