@@ -160,20 +160,20 @@ function update(resetScroll = false) {
 			if (!game.skills[path]) game.skills[path] = [];
 		};
 	};
-	let tier = 0;
-	for (; tier < game.layer.length; tier++) {
-		if (game.layer[tier].length) break;
+	let currentTier = 0;
+	for (; currentTier < game.layer.length; currentTier++) {
+		if (game.layer[currentTier].length) break;
 	};
 	if (gridAnimation.on && !gridAnimation.coords.length) {
 		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>" + gridAnimation.grid + "</div>";
 		let gridWidth = document.getElementById("grid").firstChild.getBoundingClientRect().width;
-		const getCoord = index => ((gridWidth - 2) / 13 * (game.layer[tier][index] - 5)) + "px";
+		const getCoord = index => ((gridWidth - 2) / 13 * (game.layer[currentTier][index] - 5)) + "px";
 		let scale = (((gridWidth - 2) / 13 - 2) / gridWidth);
 		html += "<div id='gridAnimation' class='inverse' style='left: " + getCoord(0) + "; top: " + getCoord(1) + "; opacity: 0; transform: scale(" + scale + ", " + scale + ")' oncopy='return false' onpaste='return false' oncut='return false'>";
 	} else {
 		html += "<div id='grid' oncopy='return false' onpaste='return false' oncut='return false'>";
 	};
-	html += "<table style='--tier-color: " + COLORS[tier % COLORS.length] + "80'>";
+	html += "<table style='--tier-color: " + COLORS[currentTier % COLORS.length] + "80'>";
 	for (let col = -1; col < 12; col++) {
 		html += "<tr>";
 		for (let row = -1; row < 12; row++) {
@@ -181,21 +181,21 @@ function update(resetScroll = false) {
 				let complete = true;
 				check: for (let r = 0; r < 12; r++) {
 					for (let c = 0; c < 12; c++) {
-						if (game.grid[tier][r][c] < 1) {
+						if (game.grid[currentTier][r][c] < 1) {
 							complete = false;
 							break check;
 						};
 					};
 				};
-				if (complete)  html += "<td onclick='completeLayer(" + tier + ")' style='cursor: pointer'>&larr;</td>";
-				else if (hasHigherTier(tier)) html += "<td onclick='goUpToTier(" + (tier + 1) + ")' style='cursor: pointer'>&larr;</td>";
+				if (complete)  html += "<td onclick='completeLayer(" + currentTier + ")' style='cursor: pointer'>&larr;</td>";
+				else if (hasHigherTier(currentTier)) html += "<td onclick='goUpToTier(" + (currentTier + 1) + ")' style='cursor: pointer'>&larr;</td>";
 				else html += "<td>&nbsp;</td>";
 			} else if (row < 0) {
 				let prog = 1;
-				if (isInIncompleteLayer(tier)) {
+				if (isInIncompleteLayer(currentTier)) {
 					prog = 0;
 					for (let r = 0; r < 12; r++) {
-						if (game.grid[tier][r][col] == 1) prog++;
+						if (game.grid[currentTier][r][col] == 1) prog++;
 					};
 					prog /= 12;
 				};
@@ -204,10 +204,10 @@ function update(resetScroll = false) {
 				else html += "<th scope='col'>&nbsp;</th>";
 			} else if (col < 0) {
 				let prog = 1;
-				if (isInIncompleteLayer(tier)) {
+				if (isInIncompleteLayer(currentTier)) {
 					prog = 0;
 					for (let c = 0; c < 12; c++) {
-						if (game.grid[tier][row][c] == 1) prog++;
+						if (game.grid[currentTier][row][c] == 1) prog++;
 					};
 					prog /= 12;
 				};
@@ -216,20 +216,20 @@ function update(resetScroll = false) {
 				else html += "<th>&nbsp;</th>";
 			} else {
 				let prog = 1;
-				if (isInIncompleteLayer(tier)) {
-					if (game.grid[tier][row][col] == -1) {
+				if (isInIncompleteLayer(currentTier)) {
+					if (game.grid[currentTier][row][col] == -1) {
 						prog = 0;
 						for (let r = 0; r < 12; r++) {
 							for (let c = 0; c < 12; c++) {
-								if (game.grid[tier - 1][r][c] == 1) prog++;
+								if (game.grid[currentTier - 1][r][c] == 1) prog++;
 							};
 						};
 						prog /= 144;
 					} else {
-						prog = game.grid[tier][row][col];
+						prog = game.grid[currentTier][row][col];
 					};
 				};
-				html += "<td" + (tier > game.activePowTier || prog < 1 ? " onclick='clickNode(" + tier + ", " + row + ", " + col + ")' style='cursor: pointer'" : "") + ">";
+				html += "<td" + (currentTier > game.activePowTier || prog < 1 ? " onclick='clickNode(" + currentTier + ", " + row + ", " + col + ")' style='cursor: pointer'" : "") + ">";
 				if (prog == 1) html += "<div><div>&check;</div></div>";
 				else if (prog > 0) html += "<div" + (prog < 1 ? " style='width: " + (prog * 100) + "%'" : "") + "></div>";
 				html += "</td>";
@@ -260,32 +260,60 @@ function update(resetScroll = false) {
 	};
 	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + ">";
 	if (game.tab == "Stats") {
-		let regions = [];
+		let activeRegions = [];
+		let totalRegions = [];
+		let bestRegions = [];
 		for (let tier = 0; tier < game.grid.length; tier++) {
-			regions[tier] = getCompleteNodes(tier);
+			activeRegions[tier] = getNodeValues(tier, prog => prog == 1, true);
+			totalRegions[tier] = activeRegions[tier];
+			bestRegions[tier] = -1;
 		};
-		let matter = 0;
-		for (let index = 0; index < regions.length; index++) {
-			matter += regions[index] * (144 ** index);
-		};
-		html += "You have a total of " + formatWhole(matter) + " matter, which is made out of:";
-		for (let index = 0; index < regions.length; index++) {
-			html += "<br>" + colorText(regions[index] + " " + getTierName(index) + (index > 0 && regions[index] != 1 ? "s" : ""), index);
-		};
-		html += "<br>";
-		let runningTotal = 0;
-		for (let row = 0; row < 12; row++) {
-			for (let col = 0; col < 12; col++) {
-				if (game.grid[0][row][col] > 0) runningTotal += game.grid[0][row][col];
+		for (let tier = game.layer.length; tier > 0; tier--) {
+			for (let row = 0; row < 12; row++) {
+				for (let col = 0; col < 12; col++) {
+					if (game.grid[tier][row][col] > 0 && game.grid[tier][row][col] < 1) {
+						let val = game.grid[tier][row][col];
+						for (let recurTier = tier - 1; recurTier >= 0; recurTier--) {
+							val *= 144;
+							totalRegions[recurTier] += Math.floor(val);
+							if (val > (bestRegions[recurTier] == -1 ? activeRegions[recurTier] : bestRegions[recurTier])) {
+								bestRegions[recurTier] = val;
+							};
+							val = val % 1;
+						};
+					};
+				};
 			};
 		};
-		for (let index = 1; index < regions.length; index++) {
-			let amt = runningTotal / (144 ** index) * 100;
-			html += "<br>You are " + colorText(formatPercent(amt), index) + " of the way to filling a " + colorText(getTierName(index), index);
-			runningTotal += regions[index] * (144 ** index);
+		let matter = 0;
+		for (let index = 0; index < totalRegions.length; index++) {
+			matter += totalRegions[index] * (144 ** index);
+		};
+		html += "You have a total of " + formatWhole(matter) + " matter, which is made out of:";
+		for (let index = 0; index < totalRegions.length; index++) {
+			html += "<br>" + colorText(totalRegions[index] + " " + getTierName(index) + (index > 0 && totalRegions[index] != 1 ? "s" : ""), index);
 		};
 		html += "<br>";
-		for (let tier = 0; tier < game.grid.length - 1; tier++) {
+		let strayMatterProgTotal = 0;
+		for (let row = 0; row < 12; row++) {
+			for (let col = 0; col < 12; col++) {
+				if (game.grid[0][row][col] > 0) strayMatterProgTotal += game.grid[0][row][col];
+			};
+		};
+		for (let index = 1; index < totalRegions.length; index++) {
+			let amt = 0;
+			if (bestRegions[index - 1] == -1) {
+				amt += strayMatterProgTotal;
+				for (let tier = 1; tier < index; tier++) {
+					amt += activeRegions[tier] * (144 ** tier);
+				};
+			} else {
+				amt += bestRegions[index - 1] * (144 ** (index - 1));
+			};
+			html += "<br>You are " + colorText(formatPercent(amt / (144 ** index) * 100), index) + " of the way to filling a " + colorText(getTierName(index), index);
+		};
+		html += "<br>";
+		for (let tier = 0; tier < game.layer.length; tier++) {
 			let amt = BAND.getAmount(tier);
 			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete band" + (amt != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
 			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
@@ -324,7 +352,7 @@ function update(resetScroll = false) {
 		};
 		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
-		if (tierPowA > 0) html += "<option value='1'" + (tier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
+		if (tierPowA > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
 		html += "</select>";
 		html += "<br>This makes you click for " + colorText(getTierName(game.activePowTier), game.activePowTier) + " progress equal to your " + (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-tier power" : "click power");
 	} else if (game.tab == "Skills") {

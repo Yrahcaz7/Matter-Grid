@@ -134,7 +134,7 @@ function moveLayer(tier, row, col) {
 };
 
 /**
- * Starts a layer specified by its containing tier, row, and col if able. Else, calls `moveLayer`.
+ * Starts a layer specified by its tier, row, and col if able. Else, calls `moveLayer`.
  * @param {number} tier - the tier of the layer to move.
  * @param {number} row - the destination row of the movement.
  * @param {number} col - the destination column of the movement.
@@ -142,14 +142,61 @@ function moveLayer(tier, row, col) {
 function startLayer(tier, row, col) {
 	for (let r = 0; r < 12; r++) {
 		for (let c = 0; c < 12; c++) {
-			if (game.grid[tier + 1][r][c] == -1 && !(r == row && c == col)) {
-				moveLayer(tier + 1, row, col);
+			if (game.grid[tier][r][c] == -1 && !(r == row && c == col)) {
+				moveLayer(tier, row, col);
 				return false;
 			};
 		};
 	};
-	game.grid[tier + 1][row][col] = -1;
+	game.grid[tier][row][col] = -1;
 	return true;
+};
+
+/**
+ * Raises a node's value by a specified amount.
+ * @param {number} tier - the tier of the node to raise the value of.
+ * @param {number} row - the row of the node to raise the value of.
+ * @param {number} col - the column of the node to raise the value of.
+ * @param {number} amt - the amount to raise the node's value by.
+ */
+function raiseNodeValue(tier, row, col, amt) {
+	if (gridAnimation.on || resetAnimation.on) return;
+	if (game.grid[tier][row]?.length && game.grid[tier][row][col] >= 0) game.grid[tier][row][col] = Math.min(Math.round((game.grid[tier][row][col] + amt) * 1e12) / 1e12, 1);
+};
+
+/**
+ * Raises a layer's value by a specified amount.
+ * @param {number} tier - the tier of the layer to raise the value of.
+ * @param {number} row - the row of the layer to raise the value of.
+ * @param {number} col - the column of the layer to raise the value of.
+ * @param {number} amt - the amount to raise the layer's value by.
+ */
+function raiseLayerValue(tier, row, col, amt) {
+	amt *= (144 ** tier);
+	let coords = [tier, row, col];
+	while (amt > 0) {
+		let val = game.grid[coords[0]][coords[1]][coords[2]];
+		if (val >= 0 && amt >= (1 - val) * (144 ** coords[0])) {
+			amt -= (1 - val) * (144 ** coords[0]);
+			game.grid[coords[0]][coords[1]][coords[2]] = 1;
+			coords[2]++;
+			if (coords[2] >= 12) coords = [coords[0], coords[1] + 1, coords[2] - 12];
+			if (coords[1] >= 12) coords = [coords[0] + 1, 0, 0];
+			if (coords[0] >= tier) {
+				game.grid[tier][row][col] = 1;
+				for (let index = 0; index < tier; index++) {
+					game.grid[index] = getStartLayer();
+				};
+				break;
+			};
+		} else if (coords[0] > 0) {
+			coords = [coords[0] - 1, 0, 0];
+		} else {
+			raiseNodeValue(0, coords[1], coords[2], amt);
+			break;
+		};
+	};
+	game.grid[tier][row][col] = -1;
 };
 
 /**
@@ -160,7 +207,10 @@ function startLayer(tier, row, col) {
  */
 function enterLayer(tier, row, col) {
 	if (gridAnimation.on || resetAnimation.on) return;
-	game.layer[tier] = [row, col];
+	if (tier > 0 && game.grid[tier][row][col] > 0) {
+		raiseLayerValue(tier, row, col, game.grid[tier][row][col]);
+	};
+	game.layer[tier - 1] = [row, col];
 	gridAnimation.grid = document.getElementById("grid").innerHTML;
 	gridAnimation.coords = [];
 	gridAnimation.on = true;
@@ -172,17 +222,6 @@ function enterLayer(tier, row, col) {
 };
 
 /**
- * Raises a node's value by a specified amount.
- * @param {number} row - the row of the node to raise the value of.
- * @param {number} col - the column of the node to raise the value of.
- * @param {number} amt - the amount to raise the node's value by.
- */
-function raiseNodeValue(row, col, amt) {
-	if (gridAnimation.on || resetAnimation.on) return;
-	if (game.grid[0][row]?.length && game.grid[0][row][col] !== undefined) game.grid[0][row][col] = Math.min(Math.round((game.grid[0][row][col] + amt) * 1e12) / 1e12, 1);
-};
-
-/**
  * Clicks the node with the specified tier, row, and column in the active layer.
  * @param {number} tier - the tier of the node to click.
  * @param {number} row - the row of the node to click.
@@ -191,33 +230,17 @@ function raiseNodeValue(row, col, amt) {
 function clickNode(tier, row, col) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	if (tier > game.activePowTier) {
-		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier - 1, row, col)) return;
-		enterLayer(tier - 1, row, col);
+		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier, row, col)) return;
+		enterLayer(tier, row, col);
 	} else if (tier > 0) {
-		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier - 1, row, col)) return;
-		let amt = (tier == 1 ? getTierPowerA() : 0) * (144 ** tier);
-		let coords = [tier, row, col];
-		while (amt > 0) {
-			let val = game.grid[coords[0]][coords[1]][coords[2]];
-			if (val >= 0 && amt >= (1 - val) * (144 ** coords[0])) {
-				amt -= (1 - val) * (144 ** coords[0]);
-				game.grid[coords[0]][coords[1]][coords[2]] = 1;
-				coords[2]++;
-				if (coords[2] >= 12) coords = [coords[0], coords[1] + 1, coords[2] - 12];
-				if (coords[1] >= 12) coords = [coords[0] + 1, 0, 0];
-				if (coords[0] >= tier) {
-					game.grid[tier][row][col] = 1;
-					for (let index = 0; index < tier; index++) {
-						game.grid[index] = getStartLayer();
-					};
-					break;
-				};
-			} else if (coords[0] > 0) {
-				coords = [coords[0] - 1, 0, 0];
-			} else {
-				raiseNodeValue(coords[1], coords[2], amt);
-				break;
-			};
+		let raises = [[row, col, (tier == 1 ? getTierPowerA() : 0)]];
+		// add other powers
+		let adjPow = getAdjacentAPower();
+		if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
+		// raise node value
+		for (let index = 0; index < raises.length; index++) {
+			if (game.grid[tier][raises[index][0]][raises[index][1]] == -1) raiseLayerValue(tier, raises[index][0], raises[index][1], raises[index][2]);
+			else raiseNodeValue(tier, raises[index][0], raises[index][1], raises[index][2]);
 		};
 		update();
 	} else {
@@ -230,25 +253,30 @@ function clickNode(tier, row, col) {
 		// other path powers
 		let mirPower = getMirrorPower();
 		for (let index = 0; index < raises.length; index++) {
-			raiseNodeValue(raises[index][0], raises[index][1], raises[index][2]);
-			if (mirPower > 0) raiseNodeValue(11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
+			raiseNodeValue(0, raises[index][0], raises[index][1], raises[index][2]);
+			if (mirPower > 0) raiseNodeValue(0, 11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
 		};
 		update();
 	};
 };
 
 /**
- * Gets the amount of complete nodes in the specified tier.
- * @param {number} tier - the tier to get the node amount from.
+ * Gets the total value of nodes in the specified tier that match a condition.
+ * @param {number} tier - the tier to get the value from.
+ * @param {function} func - a function that takes a node's progress and returns true if the node meets the condition.
+ * @param {boolean} noMult - if true, does not apply the value multiplier from the tier number.
  */
-function getCompleteNodes(tier) {
-	let nodes = 0;
+function getNodeValues(tier, func, noMult = false) {
+	let totalVal = 0;
 	for (let row = 0; row < 12; row++) {
 		for (let col = 0; col < 12; col++) {
-			if (game.grid[tier][row][col] == 1) nodes++;
+			if (func(game.grid[tier][row][col])) {
+				if (noMult) totalVal += Math.floor(game.grid[tier][row][col]);
+				else totalVal += Math.floor(game.grid[tier][row][col] * (144 ** tier));
+			};
 		};
 	};
-	return nodes;
+	return totalVal;
 };
 
 /**
@@ -257,7 +285,8 @@ function getCompleteNodes(tier) {
 function getMatter() {
 	let matter = 0;
 	for (let tier = 0; tier < game.grid.length; tier++) {
-		matter += getCompleteNodes(tier) * (144 ** tier);
+		if (tier == 0) matter += getNodeValues(tier, prog => prog == 1);
+		else matter += getNodeValues(tier, prog => prog > 0);
 	};
 	return matter;
 };
@@ -284,7 +313,18 @@ const BAND = {
 			if (col == 12) amt++;
 		};
 		for (let index = tier + 1; index < game.grid.length; index++) {
-			amt += getCompleteNodes(index) * 24 * (144 ** (index - tier - 1));
+			amt += getNodeValues(index, prog => prog == 1, true) * 24 * (144 ** (index - tier - 1));
+		};
+		for (let checkTier = game.layer.length; checkTier > tier; checkTier--) {
+			for (let row = 0; row < 12; row++) {
+				for (let col = 0; col < 12; col++) {
+					if (game.grid[checkTier][row][col] > 0 && game.grid[checkTier][row][col] < 1) {
+						let val = Math.floor(game.grid[checkTier][row][col] * 12);
+						if (val >= 11) val += Math.floor((game.grid[checkTier][row][col] * 12 - 11) * 12);
+						amt += val * (144 ** (checkTier - tier - 1));
+					};
+				};
+			};
 		};
 		return amt;
 	},
