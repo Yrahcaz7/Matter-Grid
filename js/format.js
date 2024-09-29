@@ -34,6 +34,7 @@ function format(num) {
  */
 function formatPercent(num) {
 	let mag = Math.abs(num);
+	if (mag >= 999.5) return formatWhole(mag) + "%";
 	let places = 2 - (mag >= 9.995 ? 1 : 0) - (mag >= 99.95 ? 1 : 0);
 	return (+num).toFixed(places) + "%";
 };

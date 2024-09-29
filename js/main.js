@@ -107,8 +107,8 @@ function update(resetScroll = false) {
 				let prog = 1;
 				if (isInIncompleteLayer(currentTier)) {
 					prog = 0;
-					for (let r = 0; r < 12; r++) {
-						if (game.grid[currentTier][r][col] == 1) prog++;
+					for (let checkRow = 0; checkRow < 12; checkRow++) {
+						if (game.grid[currentTier][checkRow][col] == 1) prog++;
 					};
 					prog /= 12;
 				};
@@ -119,8 +119,8 @@ function update(resetScroll = false) {
 				let prog = 1;
 				if (isInIncompleteLayer(currentTier)) {
 					prog = 0;
-					for (let c = 0; c < 12; c++) {
-						if (game.grid[currentTier][row][c] == 1) prog++;
+					for (let checkCol = 0; checkCol < 12; checkCol++) {
+						if (game.grid[currentTier][row][checkCol] == 1) prog++;
 					};
 					prog /= 12;
 				};
@@ -233,13 +233,12 @@ function update(resetScroll = false) {
 		// band displays
 		html += "<br>";
 		for (let tier = 0; tier < game.layer.length; tier++) {
-			let amt = BAND.getAmount(tier);
-			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete band" + (amt != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
-			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
+			html += "<br>You have " + colorText(formatWhole(BAND.getAmount(tier)), tier) + " complete band" + (BAND.getAmount(tier) != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
+			if (BAND.hasEffect(tier)) html += ",<br>which " + (BAND.getAmount(tier) != 1 ? "are" : "is") + " " + BAND.getEffectDesc(tier);
 		};
 		// power setup
 		let powerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
-		let prevPowerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
+		let prevPowerType = (game.activePowTier > 1 ? String.fromCharCode(63 + game.activePowTier) + "-" : "") + "power";
 		// click power display
 		html += "<br><br>Your click " + powerType + " is " + format(POWER.getClick(game.activePowTier));
 		if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getClickFactor(game.activePowTier) * 100) + " of " + prevPowerType + " level)";
@@ -424,7 +423,7 @@ function update(resetScroll = false) {
 	} else if (game.tab == "Reset") {
 		let matter = getMatter();
 		let req = RP.getReq();
-		html += "You have <b>" + formatWhole(game.resetPoints) + " reset points (RP)</b>,<br>which are multiplying click power, adjacent power, skill point gain, and band worth by " + format(RP.getEff()) + "x";
+		html += "You have <b>" + formatWhole(game.resetPoints) + " reset points (RP)</b>,<br>which are multiplying click power, adjacent power, skill point gain, and band worth for all band types by " + format(RP.getEff()) + "x";
 		let percentage = Math.round(Math.min(matter / req, 1) * 100 * 1e12) / 1e12;
 		html += "<div style='margin: 5px 0; background: linear-gradient(to right, #808080 0% " + percentage + "%, color-mix(in srgb, var(--bg-color), #808080) " + percentage + "% 100%)'>Progress for next RP:<br>" + formatWhole(matter) + "/" + formatWhole(req) + " matter (" + formatPercent(percentage) + ")</div>";
 		html += "You may only reset for <b>1 RP</b> at a time<br><button" + (matter >= req ? " onclick='RP.reset(true)'" : " class='off'") + ">Reset all previous content for <b>1 RP</b></button><hr>";

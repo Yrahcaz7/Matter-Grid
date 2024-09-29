@@ -1,3 +1,118 @@
+const BAND = function() {
+	/**
+	 * The `BAND` cache.
+	 */
+	let cache = {};
+	/**
+	 * Caches a value in the `BAND` cache.
+	 * @param {string} key - the key of the value to cache.
+	 * @param {number} tier - the tier of the value to cache.
+	 * @param {number} val - the value to cache.
+	 * @returns {number} the `val` that was cached.
+	 */
+	function cacheValue(key, tier, val) {
+		if (!cache[key]?.length) cache[key] = [];
+		cache[key][tier] = val;
+		return val;
+	};
+	return {
+		/**
+		 * Clears the `BAND` cache.
+		 */
+		clearCache() {
+			cache = {};
+		},
+		/**
+		 * Gets the amount the player has of a band type specified by its tier.
+		 * @param {number} tier - the tier of the band type amount to get.
+		 * @returns {number}
+		 */
+		getAmount(tier) {
+			if (cache.amount && cache.amount[tier]) return cache.amount[tier];
+			let amt = 0;
+			for (let col = 0; col < 12; col++) {
+				let row = 0;
+				for (; row < 12; row++) {
+					if (game.grid[tier][row][col] < 1) break;
+				};
+				if (row == 12) amt++;
+			};
+			for (let row = 0; row < 12; row++) {
+				let col = 0;
+				for (; col < 12; col++) {
+					if (game.grid[tier][row][col] < 1) break;
+				};
+				if (col == 12) amt++;
+			};
+			for (let index = tier + 1; index < game.grid.length; index++) {
+				amt += getNodeValues(index, prog => prog == 1, true) * 24 * (144 ** (index - tier - 1));
+			};
+			for (let checkTier = game.layer.length; checkTier > tier; checkTier--) {
+				for (let row = 0; row < 12; row++) {
+					for (let col = 0; col < 12; col++) {
+						if (game.grid[checkTier][row][col] > 0 && game.grid[checkTier][row][col] < 1) {
+							let val = game.grid[checkTier][row][col];
+							for (let recurTier = checkTier - 1; recurTier > tier; recurTier--) {
+								val *= 144;
+								amt += Math.floor(val) * 24;
+								val = val % 1;
+							};
+							let bands = Math.floor(val * 12);
+							if (bands >= 11) bands += Math.floor((val * 12 - 11) * 12);
+							amt += bands;
+						};
+					};
+				};
+			};
+			return cacheValue("amount", tier, amt);
+		},
+		/**
+		 * Checks if a band effect specified by its tier is unlocked.
+		 * @param {number} tier - the tier of the band effect to check.
+		 * @returns {boolean}
+		 */
+		hasEffect(tier) {
+			if (cache.has && cache.has[tier]) return cache.has[tier];
+			return cacheValue("has", tier, hasSkill("band", [0, 1][tier]));
+		},
+		/**
+		 * Gets the worth of a band type specified by its tier.
+		 * @param {number} tier - the tier of the band type to get the worth of.
+		 * @returns {number}
+		 */
+		getWorth(tier) {
+			if (cache.worth && cache.worth[tier]) return cache.worth[tier];
+			let worth = 1;
+			if (hasSkill("band", 2)) worth += 1;
+			if (hasSkill("band", 3)) worth += 1;
+			if (game.resetPoints > 0) worth *= RP.getEff();
+			return cacheValue("worth", tier, worth);
+		},
+		/**
+		 * Gets a band effect specified by its tier.
+		 * @param {number} tier - the tier of the band effect to get.
+		 * @returns {number}
+		 */
+		getEffect(tier) {
+			if (cache.effect && cache.effect[tier]) return cache.effect[tier];
+			let eff = (1 + this.getAmount(tier) * this.getWorth(tier) / 4) ** 0.5;
+			if (eff > 100) eff = ((eff / 100) ** 0.5) * 100;
+			return cacheValue("effect", tier, eff);
+		},
+		/**
+		 * Gets a band effect description specified by its tier.
+		 * @param {number} tier - the tier of the band effect description to get.
+		 * @returns {string}
+		 */
+		getEffectDesc(tier) {
+			if (cache.desc && cache.desc[tier]) return cache.desc[tier];
+			let target = ["click power", "adjacent power"][tier];
+			if (target) return cacheValue("desc", tier, "multiplying " + target + " by " + format(this.getEffect(tier)) + "x");
+			return "";
+		},
+	};
+}();
+
 const POWER = function() {
 	/**
 	 * The `POWER` cache.
