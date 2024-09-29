@@ -77,6 +77,7 @@ function completeLayer(tier) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	game.grid[tier] = getStartLayer();
 	game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] = 1;
+	POWER.clearCache();
 	goUpToTier(tier + 1);
 };
 
@@ -243,29 +244,15 @@ function clickNode(tier, row, col) {
 	if (tier > game.activePowTier) {
 		if (game.grid[tier][row][col] < 1 && isInIncompleteLayer(tier) && !startLayer(tier, row, col)) return;
 		enterLayer(tier, row, col);
-	} else if (tier > 0) {
-		let raises = [[row, col, (tier == 1 ? getTierPowerA() : 0)]];
-		// add other powers
-		let adjPow = getAdjacentAPower();
-		if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
-		// raise layer value
+	} else {
+		let raises = [[row, col, POWER.getClick(tier)]];
+		if (POWER.getAdjacent(tier) > 0) raises.push([row - 1, col, POWER.getAdjacent(tier)], [row, col - 1, POWER.getAdjacent(tier)], [row, col + 1, POWER.getAdjacent(tier)], [row + 1, col, POWER.getAdjacent(tier)]);
+		if (POWER.getRhombus(tier) > 0) raises.push([row - 2, col, POWER.getRhombus(tier)], [row - 1, col - 1, POWER.getRhombus(tier)], [row - 1, col + 1, POWER.getRhombus(tier)], [row, col - 2, POWER.getRhombus(tier)], [row, col + 2, POWER.getRhombus(tier)], [row + 1, col - 1, POWER.getRhombus(tier)], [row + 1, col + 1, POWER.getRhombus(tier)], [row + 2, col, POWER.getRhombus(tier)]);
 		for (let index = 0; index < raises.length; index++) {
 			raiseLayerValue(tier, raises[index][0], raises[index][1], raises[index][2]);
+			if (POWER.getMirror(tier) > 0) raiseLayerValue(tier, 11 - raises[index][0], raises[index][1], raises[index][2] * POWER.getMirror(tier));
 		};
-		update();
-	} else {
-		let raises = [[row, col, getClickPower()]];
-		// rightward path powers
-		let adjPow = getAdjacentPower();
-		if (adjPow > 0) raises.push([row - 1, col, adjPow], [row, col - 1, adjPow], [row, col + 1, adjPow], [row + 1, col, adjPow]);
-		let rhomPow = getRhombusPower();
-		if (rhomPow > 0) raises.push([row - 2, col, rhomPow], [row - 1, col - 1, rhomPow], [row - 1, col + 1, rhomPow], [row, col - 2, rhomPow], [row, col + 2, rhomPow], [row + 1, col - 1, rhomPow], [row + 1, col + 1, rhomPow], [row + 2, col, rhomPow]);
-		// other path powers
-		let mirPower = getMirrorPower();
-		for (let index = 0; index < raises.length; index++) {
-			raiseNodeValue(0, raises[index][0], raises[index][1], raises[index][2]);
-			if (mirPower > 0) raiseNodeValue(0, 11 - raises[index][0], raises[index][1], raises[index][2] * mirPower);
-		};
+		POWER.clearCache();
 		update();
 	};
 };

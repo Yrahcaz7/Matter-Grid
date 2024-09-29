@@ -12,92 +12,128 @@ let game = {
 	darkMode: true,
 };
 
-/**
- * Gets the player's click power.
- */
-function getClickPower() {
-	let mult = 1;
-	if (hasSkill("raw", 0)) mult += 0.1;
-	if (hasSkill("raw", 1)) mult += 0.15;
-	if (hasSkill("raw", 2)) mult += 0.2;
-	if (hasSkill("raw", 3)) mult += 0.25;
-	if (hasSkill("rawsp", 0)) {
-		let SPfactor = Math.log(SP.getTotal() + 1);
-		mult += 0.03 * SPfactor;
-		if (hasSkill("rawsp", 1)) mult += 0.03 * SPfactor;
-		if (hasSkill("rawsp", 2)) mult += 0.03 * SPfactor;
+const POWER = function() {
+	let cache = {};
+	return {
+		/**
+		 * Caches a value in the `POWER` cache.
+		 * @param {string} key - the key of the value to cache.
+		 * @param {number} tier - the tier of the value to cache.
+		 * @param {number} val - the value to cache.
+		 * @returns {number} the `val` that was cached.
+		 */
+		cacheValue(key, tier, val) {
+			if (!cache[key]?.length) cache[key] = [];
+			cache[key][tier] = val;
+			return val;
+		},
+		/**
+		 * Clears the `POWER` cache.
+		 */
+		clearCache() {
+			cache = {};
+		},
+		/**
+		 * Gets the player's click power of a specified tier.
+		 * @param {number} tier - the tier of the click power.
+		 * @returns {number}
+		 */
+		getClick(tier) {
+			if (cache.click && cache.click[tier]) return cache.click[tier];
+			if (tier > 0) {
+				let mult = 0;
+				if (tier == 1 && hasMilestone(1)) mult += getMilestoneEffect(1);
+				return this.cacheValue("click", tier, this.getLevel(tier - 1) * mult);
+			} else {
+				let mult = 1;
+				if (hasSkill("raw", 0)) mult += 0.1;
+				if (hasSkill("raw", 1)) mult += 0.15;
+				if (hasSkill("raw", 2)) mult += 0.2;
+				if (hasSkill("raw", 3)) mult += 0.25;
+				if (hasSkill("rawsp", 0)) {
+					let SPfactor = Math.log(SP.getTotal() + 1);
+					mult += 0.03 * SPfactor;
+					if (hasSkill("rawsp", 1)) mult += 0.03 * SPfactor;
+					if (hasSkill("rawsp", 2)) mult += 0.03 * SPfactor;
+				};
+				if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
+				if (game.resetPoints > 0) mult *= RP.getEff();
+				return this.cacheValue("click", 0, 0.1 * mult);
+			};
+		},
+		/**
+		 * Gets the player's adjacent power of a specified tier.
+		 * @param {number} tier - the tier of the adjacent power.
+		 * @returns {number}
+		 */
+		getAdjacent(tier) {
+			if (cache.adjacent && cache.adjacent[tier]) return cache.adjacent[tier];
+			if (tier > 0) {
+				let mult = 0;
+				if (tier == 1 && hasMilestone(3)) mult += getMilestoneEffect(3);
+				return this.cacheValue("adjacent", tier, this.getAdjacent(tier - 1) * mult);
+			} else {
+				let mult = 0;
+				if (hasSkill("adj", 0)) mult += 0.05;
+				if (hasSkill("adj", 1)) mult += 0.1;
+				if (hasSkill("adj", 2)) mult += 0.15;
+				if (hasSkill("adj", 3)) mult += 0.2;
+				if (hasSkill("adjsp", 0)) {
+					let SPfactor = Math.log(SP.getTotal() + 1);
+					mult += 0.02 * SPfactor;
+					if (hasSkill("adjsp", 1)) mult += 0.02 * SPfactor;
+					if (hasSkill("adjsp", 2)) mult += 0.02 * SPfactor;
+				};
+				if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
+				if (game.resetPoints > 0) mult *= RP.getEff();
+				return this.cacheValue("adjacent", 0, this.getClick(0) * mult);
+			};
+		},
+		/**
+		 * Gets the player's rhombus power of a specified tier.
+		 * @param {number} tier - the tier of the rhombus power.
+		 * @returns {number}
+		 */
+		getRhombus(tier) {
+			if (cache.rhombus && cache.rhombus[tier]) return cache.rhombus[tier];
+			if (tier > 0) {
+				return 0;
+			} else {
+				let mult = 0;
+				if (hasSkill("rhom", 0)) mult += 0.05;
+				if (hasSkill("rhom", 1)) mult += 0.1;
+				if (hasSkill("rhom", 1)) mult += 0.15;
+				return this.cacheValue("rhombus", 0, this.getAdjacent(0) * mult);
+			};
+		},
+		/**
+		 * Gets the player's mirror power of a specified tier.
+		 * @param {number} tier - the tier of the mirror power.
+		 * @returns {number}
+		 */
+		getMirror(tier) {
+			if (cache.mirror && cache.mirror[tier]) return cache.mirror[tier];
+			if (tier > 0) {
+				return 0;
+			} else {
+				let mult = 0;
+				if (hasSkill("mir", 0)) mult += 0.05;
+				if (hasSkill("mir", 1)) mult += 0.1;
+				if (hasSkill("mir", 2)) mult += 0.15;
+				return this.cacheValue("mirror", 0, mult);
+			};
+		},
+		/**
+		 * Gets the player's power level of a specified tier.
+		 * @param {number} tier - the tier of the power level.
+		 * @returns {number}
+		 */
+		getLevel(tier) {
+			if (cache.level && cache.level[tier]) return cache.level[tier];
+			return this.cacheValue("level", tier, (this.getClick(tier) + this.getAdjacent(tier) * 4 + this.getRhombus(tier) * 8) * (1 + this.getMirror(tier)));
+		},
 	};
-	if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
-	if (game.resetPoints > 0) mult *= RP.getEff();
-	return 0.1 * mult;
-};
-
-/**
- * Gets the player's adjacent power.
- */
-function getAdjacentPower() {
-	let mult = 0;
-	if (hasSkill("adj", 0)) mult += 0.05;
-	if (hasSkill("adj", 1)) mult += 0.1;
-	if (hasSkill("adj", 2)) mult += 0.15;
-	if (hasSkill("adj", 3)) mult += 0.2;
-	if (hasSkill("adjsp", 0)) {
-		let SPfactor = Math.log(SP.getTotal() + 1);
-		mult += 0.02 * SPfactor;
-		if (hasSkill("adjsp", 1)) mult += 0.02 * SPfactor;
-		if (hasSkill("adjsp", 2)) mult += 0.02 * SPfactor;
-	};
-	if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
-	if (game.resetPoints > 0) mult *= RP.getEff();
-	return getClickPower() * mult;
-};
-
-/**
- * Gets the player's adjacent A-power.
- */
-function getAdjacentAPower() {
-	let mult = 0;
-	if (hasMilestone(3)) mult += getMilestoneEffect(3);
-	return getAdjacentPower() * mult;
-};
-
-/**
- * Gets the player's rhombus power.
- */
-function getRhombusPower() {
-	let mult = 0;
-	if (hasSkill("rhom", 0)) mult += 0.05;
-	if (hasSkill("rhom", 1)) mult += 0.1;
-	if (hasSkill("rhom", 1)) mult += 0.15;
-	return getAdjacentPower() * mult;
-};
-
-/**
- * Gets the player's mirror power.
- */
-function getMirrorPower() {
-	let mult = 0;
-	if (hasSkill("mir", 0)) mult += 0.05;
-	if (hasSkill("mir", 1)) mult += 0.1;
-	if (hasSkill("mir", 2)) mult += 0.15;
-	return mult;
-};
-
-/**
- * Gets the player's power level.
- */
-function getPowerLevel() {
-	return (getClickPower() + getAdjacentPower() * 4 + getRhombusPower() * 8) * (1 + getMirrorPower());
-};
-
-/**
- * Gets the player's A-tier power mult.
- */
-function getTierPowerA() {
-	let mult = 0;
-	if (hasMilestone(1)) mult += getMilestoneEffect(1);
-	return getPowerLevel() * mult;
-};
+}();
 
 /**
  * Changes the current tab to the tab of the specified index.
@@ -318,43 +354,30 @@ function update(resetScroll = false) {
 			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete band" + (amt != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
 			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
 		};
-		let clickPower = getClickPower();
-		let adjPower = getAdjacentPower();
-		let rhomPower = getRhombusPower();
-		let mirPower = getMirrorPower();
-		let powerLevel = getPowerLevel();
-		let tierPowA = getTierPowerA();
-		if (game.activePowTier == 0) {
-			html += "<br><br>Your click power is " + format(clickPower);
-			if (adjPower > 0) html += "<br>Your adjacent power is " + format(adjPower);
-			if (rhomPower > 0) html += "<br>Your rhombus power is " + format(rhomPower);
-			if (mirPower > 0) html += "<br>Your mirror power is " + format(mirPower);
-			html += "<br><br>Your power level is " + format(powerLevel);
-			if (tierPowA > 0) html += "<br>Your A-tier power is " + format(tierPowA);
-			html += "<br><br>Power level formula:<br>";
-			if (mirPower > 0) html += "(";
-			html += "click";
-			if (adjPower > 0) html += " + adjacent&times;4";
-			if (rhomPower > 0) html += " + rhombus&times;8";
-			if (mirPower > 0) html += ")(mirror + 1)";
-			html += " = level<br>";
-			if (mirPower > 0) html += "(";
-			html += format(clickPower);
-			if (adjPower > 0) html += " + " + format(adjPower) + "&times;4";
-			if (rhomPower > 0) html += " + " + format(rhomPower) + "&times;8";
-			if (mirPower > 0) html += ")(" + format(mirPower) + " + 1)";
-			html += " = " + format(powerLevel);
-		} else if (game.activePowTier == 1) {
-			html += "<br><br>Your A-tier power is " + format(tierPowA);
-			if (adjPower > 0) html += "<br>Your adjacent A-power is " + format(getAdjacentAPower());
-			if (rhomPower > 0) html += "<br>Your rhombus A-power is " + format(0);
-			if (mirPower > 0) html += "<br>Your mirror A-power is " + format(0);
-		};
+		let powerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
+		html += "<br><br>Your click " + powerType + " is " + format(POWER.getClick(game.activePowTier));
+		if (POWER.getAdjacent(0) > 0) html += "<br>Your adjacent " + powerType + " is " + format(POWER.getAdjacent(game.activePowTier));
+		if (POWER.getRhombus(0) > 0) html += "<br>Your rhombus " + powerType + " is " + format(POWER.getRhombus(game.activePowTier));
+		if (POWER.getMirror(0) > 0) html += "<br>Your mirror " + powerType + " is " + format(POWER.getMirror(game.activePowTier));
+		html += "<br><br>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier));
+		html += "<br><br>Generic power level formula:<br>";
+		if (POWER.getMirror(0) > 0) html += "(";
+		html += "click";
+		if (POWER.getAdjacent(0) > 0) html += " + adjacent&times;4";
+		if (POWER.getRhombus(0) > 0) html += " + rhombus&times;8";
+		if (POWER.getMirror(0) > 0) html += ")(mirror + 1)";
+		html += " = level<br>";
+		if (POWER.getMirror(0) > 0) html += "(";
+		html += format(POWER.getClick(game.activePowTier));
+		if (POWER.getAdjacent(0) > 0) html += " + " + format(POWER.getAdjacent(game.activePowTier)) + "&times;4";
+		if (POWER.getRhombus(0) > 0) html += " + " + format(POWER.getRhombus(game.activePowTier)) + "&times;8";
+		if (POWER.getMirror(0) > 0) html += ")(" + format(POWER.getMirror(game.activePowTier)) + " + 1)";
+		html += " = " + format(POWER.getLevel(game.activePowTier));
 		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
-		if (tierPowA > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
+		if (POWER.getClick(1) > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
 		html += "</select>";
-		html += "<br>This makes you click for " + colorText(getTierName(game.activePowTier), game.activePowTier) + " progress equal to your " + (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-tier power" : "click power");
+		html += "<br>This makes you click for " + colorText(getTierName(game.activePowTier), game.activePowTier) + " progress equal to your click " + powerType;
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";

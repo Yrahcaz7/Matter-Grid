@@ -1,8 +1,8 @@
 const MILESTONES = [
 	[1, "Unlocks secondary skill paths"],
-	[2, "Adds 0.1% of power level as A-tier power per RP", () => game.resetPoints / 1000],
+	[2, "Adds 0.08% of power level as click A-power per RP", () => game.resetPoints * 0.0008],
 	[3, "Adds 1 free SP per RP", () => game.resetPoints],
-	[4, "Adds 0.1% of adjacent power as adjacent A-power per RP", () => game.resetPoints / 1000],
+	[4, "Adds 0.04% of adjacent power as adjacent A-power per RP", () => game.resetPoints * 0.0004],
 	[5, "Coming soon"],
 ];
 
@@ -38,6 +38,7 @@ function reset() {
 	game.skillZoom = 0;
 	game.respecProg = 0;
 	game.activePowTier = 0;
+	POWER.clearCache();
 	update();
 };
 
