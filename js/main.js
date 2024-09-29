@@ -12,129 +12,6 @@ let game = {
 	darkMode: true,
 };
 
-const POWER = function() {
-	let cache = {};
-	return {
-		/**
-		 * Caches a value in the `POWER` cache.
-		 * @param {string} key - the key of the value to cache.
-		 * @param {number} tier - the tier of the value to cache.
-		 * @param {number} val - the value to cache.
-		 * @returns {number} the `val` that was cached.
-		 */
-		cacheValue(key, tier, val) {
-			if (!cache[key]?.length) cache[key] = [];
-			cache[key][tier] = val;
-			return val;
-		},
-		/**
-		 * Clears the `POWER` cache.
-		 */
-		clearCache() {
-			cache = {};
-		},
-		/**
-		 * Gets the player's click power of a specified tier.
-		 * @param {number} tier - the tier of the click power.
-		 * @returns {number}
-		 */
-		getClick(tier) {
-			if (cache.click && cache.click[tier]) return cache.click[tier];
-			if (tier > 0) {
-				let mult = 0;
-				if (tier == 1 && hasMilestone(1)) mult += getMilestoneEffect(1);
-				return this.cacheValue("click", tier, this.getLevel(tier - 1) * mult);
-			} else {
-				let mult = 1;
-				if (hasSkill("raw", 0)) mult += 0.1;
-				if (hasSkill("raw", 1)) mult += 0.15;
-				if (hasSkill("raw", 2)) mult += 0.2;
-				if (hasSkill("raw", 3)) mult += 0.25;
-				if (hasSkill("rawsp", 0)) {
-					let SPfactor = Math.log(SP.getTotal() + 1);
-					mult += 0.03 * SPfactor;
-					if (hasSkill("rawsp", 1)) mult += 0.03 * SPfactor;
-					if (hasSkill("rawsp", 2)) mult += 0.03 * SPfactor;
-				};
-				if (BAND.hasEffect(0)) mult *= BAND.getEffect(0);
-				if (game.resetPoints > 0) mult *= RP.getEff();
-				return this.cacheValue("click", 0, 0.1 * mult);
-			};
-		},
-		/**
-		 * Gets the player's adjacent power of a specified tier.
-		 * @param {number} tier - the tier of the adjacent power.
-		 * @returns {number}
-		 */
-		getAdjacent(tier) {
-			if (cache.adjacent && cache.adjacent[tier]) return cache.adjacent[tier];
-			if (tier > 0) {
-				let mult = 0;
-				if (tier == 1 && hasMilestone(3)) mult += getMilestoneEffect(3);
-				return this.cacheValue("adjacent", tier, this.getAdjacent(tier - 1) * mult);
-			} else {
-				let mult = 0;
-				if (hasSkill("adj", 0)) mult += 0.05;
-				if (hasSkill("adj", 1)) mult += 0.1;
-				if (hasSkill("adj", 2)) mult += 0.15;
-				if (hasSkill("adj", 3)) mult += 0.2;
-				if (hasSkill("adjsp", 0)) {
-					let SPfactor = Math.log(SP.getTotal() + 1);
-					mult += 0.02 * SPfactor;
-					if (hasSkill("adjsp", 1)) mult += 0.02 * SPfactor;
-					if (hasSkill("adjsp", 2)) mult += 0.02 * SPfactor;
-				};
-				if (BAND.hasEffect(1)) mult *= BAND.getEffect(1);
-				if (game.resetPoints > 0) mult *= RP.getEff();
-				return this.cacheValue("adjacent", 0, this.getClick(0) * mult);
-			};
-		},
-		/**
-		 * Gets the player's rhombus power of a specified tier.
-		 * @param {number} tier - the tier of the rhombus power.
-		 * @returns {number}
-		 */
-		getRhombus(tier) {
-			if (cache.rhombus && cache.rhombus[tier]) return cache.rhombus[tier];
-			if (tier > 0) {
-				return 0;
-			} else {
-				let mult = 0;
-				if (hasSkill("rhom", 0)) mult += 0.05;
-				if (hasSkill("rhom", 1)) mult += 0.1;
-				if (hasSkill("rhom", 1)) mult += 0.15;
-				return this.cacheValue("rhombus", 0, this.getAdjacent(0) * mult);
-			};
-		},
-		/**
-		 * Gets the player's mirror power of a specified tier.
-		 * @param {number} tier - the tier of the mirror power.
-		 * @returns {number}
-		 */
-		getMirror(tier) {
-			if (cache.mirror && cache.mirror[tier]) return cache.mirror[tier];
-			if (tier > 0) {
-				return 0;
-			} else {
-				let mult = 0;
-				if (hasSkill("mir", 0)) mult += 0.05;
-				if (hasSkill("mir", 1)) mult += 0.1;
-				if (hasSkill("mir", 2)) mult += 0.15;
-				return this.cacheValue("mirror", 0, mult);
-			};
-		},
-		/**
-		 * Gets the player's power level of a specified tier.
-		 * @param {number} tier - the tier of the power level.
-		 * @returns {number}
-		 */
-		getLevel(tier) {
-			if (cache.level && cache.level[tier]) return cache.level[tier];
-			return this.cacheValue("level", tier, (this.getClick(tier) + this.getAdjacent(tier) * 4 + this.getRhombus(tier) * 8) * (1 + this.getMirror(tier)));
-		},
-	};
-}();
-
 /**
  * Changes the current tab to the tab of the specified index.
  * @param {number} index - the index of the tab to change to.
@@ -296,6 +173,7 @@ function update(resetScroll = false) {
 	};
 	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + ">";
 	if (game.tab == "Stats") {
+		// region setup
 		let activeRegions = [];
 		let totalRegions = [];
 		let bestRegions = [];
@@ -321,21 +199,25 @@ function update(resetScroll = false) {
 				};
 			};
 		};
+		// matter setup
 		let matter = 0;
 		for (let index = 0; index < totalRegions.length; index++) {
 			matter += totalRegions[index] * (144 ** index);
 		};
+		// matter and region displays
 		html += "You have a total of " + formatWhole(matter) + " matter, which is made out of:";
 		for (let index = 0; index < totalRegions.length; index++) {
 			html += "<br>" + colorText(totalRegions[index] + " " + getTierName(index) + (index > 0 && totalRegions[index] != 1 ? "s" : ""), index);
 		};
-		html += "<br>";
+		// percentage setup
 		let strayMatterProgTotal = 0;
 		for (let row = 0; row < 12; row++) {
 			for (let col = 0; col < 12; col++) {
 				if (game.grid[0][row][col] > 0) strayMatterProgTotal += game.grid[0][row][col];
 			};
 		};
+		// percentage displays
+		html += "<br>";
 		for (let index = 1; index < totalRegions.length; index++) {
 			let amt = 0;
 			if (bestRegions[index - 1] == -1) {
@@ -348,18 +230,39 @@ function update(resetScroll = false) {
 			};
 			html += "<br>You are " + colorText(formatPercent(amt / (144 ** index) * 100), index) + " of the way to filling a " + colorText(getTierName(index), index);
 		};
+		// band displays
 		html += "<br>";
 		for (let tier = 0; tier < game.layer.length; tier++) {
 			let amt = BAND.getAmount(tier);
 			html += "<br>You have " + colorText(formatWhole(amt), tier) + " complete band" + (amt != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
 			if (BAND.hasEffect(tier)) html += ",<br>which " + (amt != 1 ? "are" : "is") + " " + BAND.getEffDesc(tier, BAND.getEffect(tier, amt));
 		};
+		// power setup
 		let powerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
+		let prevPowerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
+		// click power display
 		html += "<br><br>Your click " + powerType + " is " + format(POWER.getClick(game.activePowTier));
-		if (POWER.getAdjacent(0) > 0) html += "<br>Your adjacent " + powerType + " is " + format(POWER.getAdjacent(game.activePowTier));
-		if (POWER.getRhombus(0) > 0) html += "<br>Your rhombus " + powerType + " is " + format(POWER.getRhombus(game.activePowTier));
-		if (POWER.getMirror(0) > 0) html += "<br>Your mirror " + powerType + " is " + format(POWER.getMirror(game.activePowTier));
+		if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getClickFactor(game.activePowTier) * 100) + " of " + prevPowerType + " level)";
+		// adjacent power display
+		if (POWER.getAdjacent(0) > 0) {
+			html += "<br>Your adjacent " + powerType + " is " + format(POWER.getAdjacent(game.activePowTier));
+			if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getAdjacentFactor(game.activePowTier) * 100) + " of adjacent " + prevPowerType + ")";
+			else html += " (" + formatPercent(POWER.getAdjacentFactor(0) * 100) + " of click power)";
+		};
+		// rhombus power display
+		if (POWER.getRhombus(0) > 0) {
+			html += "<br>Your rhombus " + powerType + " is " + format(POWER.getRhombus(game.activePowTier));
+			if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getRhombusFactor(game.activePowTier) * 100) + " of rhombus " + prevPowerType + ")";
+			else html += " (" + formatPercent(POWER.getRhombusFactor(0) * 100) + " of adjacent power)";
+		};
+		// mirror power display
+		if (POWER.getMirror(0) > 0) {
+			html += "<br>Your mirror " + powerType + " is " + format(POWER.getMirror(game.activePowTier));
+			if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getMirrorFactor(game.activePowTier) * 100) + " of mirror " + prevPowerType + ")";
+		};
+		// power level display
 		html += "<br><br>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier));
+		// power level formulas display
 		html += "<br><br>Generic power level formula:<br>";
 		if (POWER.getMirror(0) > 0) html += "(";
 		html += "click";
@@ -373,6 +276,7 @@ function update(resetScroll = false) {
 		if (POWER.getRhombus(0) > 0) html += " + " + format(POWER.getRhombus(game.activePowTier)) + "&times;8";
 		if (POWER.getMirror(0) > 0) html += ")(" + format(POWER.getMirror(game.activePowTier)) + " + 1)";
 		html += " = " + format(POWER.getLevel(game.activePowTier));
+		// power tier display
 		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
 		if (POWER.getClick(1) > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
