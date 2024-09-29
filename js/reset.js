@@ -38,7 +38,7 @@ function reset() {
 	game.skillZoom = 0;
 	game.respecProg = 0;
 	game.activePowTier = 0;
-	POWER.clearCache();
+	clearCaches();
 	update();
 };
 

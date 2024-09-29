@@ -77,7 +77,7 @@ function completeLayer(tier) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	game.grid[tier] = getStartLayer();
 	game.grid[tier + 1][game.layer[tier][0]][game.layer[tier][1]] = 1;
-	POWER.clearCache();
+	clearCaches();
 	goUpToTier(tier + 1);
 };
 
@@ -252,7 +252,7 @@ function clickNode(tier, row, col) {
 			raiseLayerValue(tier, raises[index][0], raises[index][1], raises[index][2]);
 			if (POWER.getMirror(tier) > 0) raiseLayerValue(tier, 11 - raises[index][0], raises[index][1], raises[index][2] * POWER.getMirror(tier));
 		};
-		POWER.clearCache();
+		clearCaches();
 		update();
 	};
 };

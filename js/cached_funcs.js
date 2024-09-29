@@ -284,3 +284,11 @@ const POWER = function() {
 		},
 	};
 }();
+
+/**
+ * Clears all function caches.
+ */
+function clearCaches() {
+	BAND.clearCache();
+	POWER.clearCache();
+};

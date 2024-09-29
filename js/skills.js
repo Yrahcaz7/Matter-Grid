@@ -321,7 +321,7 @@ function buySkill(path, index) {
 	if (gridAnimation.on || resetAnimation.on) return;
 	if (skillUnlocked(path, index) && !hasSkill(path, index) && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
 		game.skills[path][index] = SKILLS[path].data[index].cost;
-		POWER.clearCache();
+		clearCaches();
 		update();
 	};
 };
@@ -416,7 +416,7 @@ const SP = {
 			element.onclick = () => {
 				game.skills = {};
 				game.respecProg = 0;
-				POWER.clearCache();
+				clearCaches();
 				update(true);
 			};
 			document.getElementById("confirm_respec").append(element);
