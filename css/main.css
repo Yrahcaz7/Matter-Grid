@@ -36,8 +36,8 @@ html, body {
 	width: 50%;
 	height: 100%;
 	padding: 10px;
-	user-select: none;
 	-webkit-user-select: none;
+	user-select: none;
 }
 
 #gridAnimation, #resetAnimation, #resetAnimation>div {
@@ -131,6 +131,30 @@ td>div>div, th>div>div, #resetAnimation>div>div>div {
 	border-left: 2px solid var(--txt-color);
 	padding: 5px;
 	overflow: auto;
+}
+
+.info {
+	width: 2em;
+	height: 2em;
+	border-radius: 50%;
+	fill: var(--txt-color);
+	cursor: pointer;
+}
+
+.popup {
+	right: 5px;
+	position: absolute;
+	box-sizing: border-box;
+	width: fit-content;
+	max-width: calc(100vw - 15px);
+	border: 2px solid var(--txt-color);
+	background: var(--bg-color);
+	padding: 5px;
+	white-space: pre-wrap;
+}
+
+.popup>div {
+	margin: auto;
 }
 
 select {

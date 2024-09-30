@@ -86,8 +86,8 @@ function completeLayer(tier) {
  * @param {number} tier - the tier to get the name of.
  */
 function getTierName(tier) {
-	if (tier == 0) return "stray matter";
-	else return "type-" + String.fromCharCode(64 + tier) + " region";
+	if (tier == 0) return "stray&nbsp;matter";
+	else return "type-" + String.fromCharCode(64 + tier) + "&nbsp;region";
 };
 
 /**

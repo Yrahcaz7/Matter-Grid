@@ -250,34 +250,6 @@ function resetSkillTreeZoom() {
 };
 
 /**
- * Adjusts the skill UI appropriately.
- */
-function adjustSkillUI() {
-	if (document.getElementById("skillContainer")) {
-		let skillUI = document.getElementsByClassName("skillUI");
-		if (skillUI.length) {
-			let width = 0;
-			for (let index = 0; index < skillUI.length; index++) {
-				width += skillUI[index].getBoundingClientRect().width;
-			};
-			if (document.getElementById("skillContainer").getBoundingClientRect().width + 15 < width) {
-				let respec = skillUI[0].children[0];
-				if (respec) {
-					skillUI[1].innerHTML += "<div class='skillUI' style='right: 10px; padding: 0'>" + respec.outerHTML + "</div>";
-					skillUI[0].removeChild(respec);
-				};
-			} else {
-				let respec = skillUI[1].children[2];
-				if (respec) {
-					skillUI[0].innerHTML += respec.innerHTML;
-					skillUI[1].removeChild(respec);
-				};
-			};
-		};
-	};
-};
-
-/**
  * Checks the unlock status of a skill specified by its path and index.
  * @param {string} path - the path of the skill to check.
  * @param {number} index - the index of the skill to check.
@@ -423,5 +395,3 @@ const SP = {
 		};
 	},
 };
-
-window.addEventListener("resize", adjustSkillUI);

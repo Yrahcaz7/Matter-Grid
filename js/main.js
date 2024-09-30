@@ -58,6 +58,23 @@ function toggleBar(force = false) {
 };
 
 /**
+ * Gets an info button in HTML format.
+ * @param {number} lines - the number of lines the info button is next to.
+ */
+function getInfoButton(lines) {
+	let html = "";
+	// 0.01x^2 + 0.51x - 1.21 is a quadratic fit for the following points: (1, -0.68) (2, -0.16) (3, 0.42) (4, 1) (5, 1.59)
+	// these points are approximations of the correct margin in em (x) to center an info button with a number of lines (y)
+	// this quadratic formula replaces the linear formula of 0.55x - 1.25 which drifted noticably when zoomed on 4+ lines
+	let quadratic = Math.round((0.01 * (lines ** 2) + 0.51 * lines - 1.21) * 1e12) / 1e12;
+	html += "<svg viewBox='0 0 16 16' class='info' style='margin: " + (lines == 1 ? -0.5 : 0) + "em 0 " + quadratic + "em' onmouseenter='adjustUI()' onmouseleave='adjustUI()'>";
+	html += "<path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16'/>";
+	html += "<path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0'/>";
+	html += "</svg>";
+	return html;
+};
+
+/**
  * Updates the HTML of the page.
  * @param {boolean} resetScroll - if true, resets scroll.
  */
@@ -171,9 +188,10 @@ function update(resetScroll = false) {
 		if (TABS[index] == game.tab) html += "<button tabindex='-1' class='on'>" + TABS[index] + "</button>";
 		else html += "<button tabindex='-1' onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
 	};
-	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + ">";
+	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + " onscroll='adjustUI()'>";
+	// main bar display
 	if (game.tab == "Stats") {
-		// region setup
+		// regions setup
 		let activeRegions = [];
 		let totalRegions = [];
 		let bestRegions = [];
@@ -233,8 +251,12 @@ function update(resetScroll = false) {
 		// band displays
 		html += "<br>";
 		for (let tier = 0; tier < game.layer.length; tier++) {
-			html += "<br>You have " + colorText(formatWhole(BAND.getAmount(tier)), tier) + " complete band" + (BAND.getAmount(tier) != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
-			if (BAND.hasEffect(tier)) html += ",<br>which " + (BAND.getAmount(tier) != 1 ? "are" : "is") + " " + BAND.getEffectDesc(tier);
+			html += "<br><div style='display: inline-block'>You have " + colorText(formatWhole(BAND.getAmount(tier)), tier) + " complete band" + (BAND.getAmount(tier) != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
+			if (BAND.hasEffect(tier)) {
+				html += ",<br>which " + (BAND.getAmount(tier) != 1 ? "are" : "is") + " " + BAND.getEffectDesc(tier) + "</div> " + getInfoButton(2);
+			} else {
+				html += "</div>";
+			};
 		};
 		// power setup
 		let powerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
@@ -260,27 +282,12 @@ function update(resetScroll = false) {
 			if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getMirrorFactor(game.activePowTier) * 100) + " of mirror " + prevPowerType + ")";
 		};
 		// power level display
-		html += "<br><br>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier));
-		// power level formulas display
-		html += "<br><br>Generic power level formula:<br>";
-		if (POWER.getMirror(0) > 0) html += "(";
-		html += "click";
-		if (POWER.getAdjacent(0) > 0) html += " + adjacent&times;4";
-		if (POWER.getRhombus(0) > 0) html += " + rhombus&times;8";
-		if (POWER.getMirror(0) > 0) html += ")(mirror + 1)";
-		html += " = level<br>";
-		if (POWER.getMirror(0) > 0) html += "(";
-		html += format(POWER.getClick(game.activePowTier));
-		if (POWER.getAdjacent(0) > 0) html += " + " + format(POWER.getAdjacent(game.activePowTier)) + "&times;4";
-		if (POWER.getRhombus(0) > 0) html += " + " + format(POWER.getRhombus(game.activePowTier)) + "&times;8";
-		if (POWER.getMirror(0) > 0) html += ")(" + format(POWER.getMirror(game.activePowTier)) + " + 1)";
-		html += " = " + format(POWER.getLevel(game.activePowTier));
+		html += "<br><br>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier)) + " " + getInfoButton(1);
 		// power tier display
 		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
 		if (POWER.getClick(1) > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
-		html += "</select>";
-		html += "<br>This makes you click for " + colorText(getTierName(game.activePowTier), game.activePowTier) + " progress equal to your click " + powerType;
+		html += "</select> " + getInfoButton(1);
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
@@ -447,6 +454,52 @@ function update(resetScroll = false) {
 		html += "<button tabindex='-1' onclick='toggleDarkMode()'>Toggle Dark Mode</button>";
 	};
 	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
+	// popups
+	if (game.tab == "Stats") {
+		// band info
+		for (let tier = 0; tier < game.layer.length; tier++) {
+			if (BAND.hasEffect(tier)) {
+				html += "<div class='popup'>";
+				if (BAND.getEffect(tier) > 100) {
+					html += "<b>Softcapped Formula:</b> (1 + bands&times;worth&divide;4)<sup>0.25</sup>&times;10";
+					html += "<br><b>Calculation:</b> (1 + " + formatWhole(BAND.getAmount(tier)) + "&times;" + format(BAND.getWorth(tier)) + "&divide;4)<sup>0.25</sup>&times;10";
+				} else {
+					html += "<b>Formula:</b> (1 + bands&times;worth&divide;4)<sup>0.5</sup>";
+					html += "<br><b>Calculation:</b> (1 + " + formatWhole(BAND.getAmount(tier)) + "&times;" +format(BAND.getWorth(tier)) + "&divide;4)<sup>0.5</sup>";
+				};
+				html += "</div>";
+			};
+		};
+		// power level info
+		html += "<div class='popup'>";
+		html += "<b>Formula:</b> ";
+		if (POWER.getMirror(0) > 0) html += "(";
+		html += "click";
+		if (POWER.getAdjacent(0) > 0) html += " + adjacent&times;4";
+		if (POWER.getRhombus(0) > 0) html += " + rhombus&times;8";
+		if (POWER.getMirror(0) > 0) html += ")(mirror + 1)";
+		html += " = level";
+		html += "<br><b>Calculation:</b> ";
+		if (POWER.getMirror(0) > 0) html += "(";
+		html += format(POWER.getClick(game.activePowTier));
+		if (POWER.getAdjacent(0) > 0) html += " + " + format(POWER.getAdjacent(game.activePowTier)) + "&times;4";
+		if (POWER.getRhombus(0) > 0) html += " + " + format(POWER.getRhombus(game.activePowTier)) + "&times;8";
+		if (POWER.getMirror(0) > 0) html += ")(" + format(POWER.getMirror(game.activePowTier)) + " + 1)";
+		html += " = " + format(POWER.getLevel(game.activePowTier));
+		html += "</div>";
+		// power tier info
+		let tierLetter = String.fromCharCode(64 + game.activePowTier);
+		let tierName = getTierName(game.activePowTier);
+		html += "<div class='popup'>";
+		html += "<div style='max-width: min(31em, 100%)'>";
+		html += "Since " + (game.activePowTier > 0 ? "the " + tierLetter + "-" : "no ") + "power tier is active, you click for ";
+		html += colorText(tierName, game.activePowTier) + " progress equal to your click " + (game.activePowTier > 0 ? tierLetter + "-" : "") + "power, ";
+		if (game.activePowTier > 0) html += "and you cannot view the insides of " + colorText(tierName + "s", game.activePowTier) + ".";
+		else html += "and you can view the insides of all regions.";
+		html += "</div>";
+		html += "<div style='max-width: min(31em, 100%)'><b>You may change your active power tier to any valid power tier that has click power at any time.</b></div>";
+		html += "</div>";
+	};
 	if (resetAnimation.on) html += "<div id='animationCover'><div id='wormhole'><div></div></div></div>";
 	else if (gridAnimation.on) html += "<div id='animationCover'></div>";
 	if (resetScroll) {
@@ -470,10 +523,72 @@ function update(resetScroll = false) {
 			document.getElementById("gridAnimation").style = "left: 0; top: 0; opacity: 1; transform: scale(1, 1)";
 		};
 	};
-	adjustSkillUI();
+	adjustUI();
+};
+
+/**
+ * Adjusts UI appropriately.
+ */
+function adjustUI() {
+	if (document.getElementById("skillContainer")) {
+		let skillUI = document.getElementsByClassName("skillUI");
+		if (skillUI.length) {
+			let width = 0;
+			for (let index = 0; index < skillUI.length; index++) {
+				width += skillUI[index].getBoundingClientRect().width;
+			};
+			if (document.getElementById("skillContainer").getBoundingClientRect().width + 15 < width) {
+				let respec = skillUI[0].children[0];
+				if (respec) {
+					skillUI[1].innerHTML += "<div class='skillUI' style='right: 10px; padding: 0'>" + respec.outerHTML + "</div>";
+					skillUI[0].removeChild(respec);
+				};
+			} else {
+				let respec = skillUI[1].children[2];
+				if (respec) {
+					skillUI[0].innerHTML += respec.innerHTML;
+					skillUI[1].removeChild(respec);
+				};
+			};
+		};
+	} else {
+		let infoList = document.getElementsByClassName("info");
+		let popupList = document.getElementsByClassName("popup");
+		for (let index = 0; index < infoList.length && index < popupList.length; index++) {
+			if (infoList[index].matches(":hover")) {
+				popupList[index].style = "";
+				let children = popupList[index].children;
+				for (let child = 0; child < children.length; child++) {
+					children[child].style.width = "auto";
+				};
+				requestAnimationFrame(() => {
+					let children = popupList[index].children;
+					for (let child = 0; child < children.length; child++) {
+						if (children[child] instanceof HTMLDivElement) {
+							const range = document.createRange();
+							range.selectNodeContents(children[child]);
+							children[child].style.width = range.getBoundingClientRect().width + "px";
+						};
+					};
+				});
+			} else {
+				popupList[index].style = "display: none";
+			};
+			requestAnimationFrame(() => {
+				let infoRect = infoList[index].getBoundingClientRect();
+				if (infoRect.bottom + popupList[index].getBoundingClientRect().height + 15 > document.documentElement.offsetHeight) {
+					popupList[index].style.bottom = "calc(100% - " + (infoRect.top - 5) + "px)";
+				} else {
+					popupList[index].style.top = (infoRect.bottom + 5) + "px";
+				};
+			});
+		};
+	};
 };
 
 window.addEventListener("load", () => {
 	SAVE.load();
 	update(true);
 });
+
+window.addEventListener("resize", adjustUI);
