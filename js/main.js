@@ -453,19 +453,20 @@ function update(resetScroll = false) {
 		html += "<hr style='margin-top: 10px'>Visual Options<hr>";
 		html += "<button tabindex='-1' onclick='toggleDarkMode()'>Toggle Dark Mode</button>";
 	};
-	html += "</div><div id='barToggle' onclick='toggleBar()'>&rarr;</div></div>";
+	html += "</div><div id='barToggle' onclick='toggleBar()'>" + (document.getElementById("fullGridCSS") ? "&larr;" : "&rarr;") + "</div></div>";
 	// popups
 	if (game.tab == "Stats") {
 		// band info
 		for (let tier = 0; tier < game.layer.length; tier++) {
 			if (BAND.hasEffect(tier)) {
 				html += "<div class='popup'>";
-				if (BAND.getEffect(tier) > 100) {
-					html += "<b>Softcapped Formula:</b> (1 + bands&times;worth&divide;4)<sup>0.25</sup>&times;10";
-					html += "<br><b>Calculation:</b> (1 + " + formatWhole(BAND.getAmount(tier)) + "&times;" + format(BAND.getWorth(tier)) + "&divide;4)<sup>0.25</sup>&times;10";
+				if (BAND.getEffect(tier) > 36) {
+					html += "Effect is softcapped after 36x";
+					html += "<br><b>New Formula:</b> (bands&times;worth&divide;4 + 1)<sup>0.25</sup>&times;6";
+					html += "<br><b>Calculation:</b> (" + formatWhole(BAND.getAmount(tier)) + "&times;" + format(BAND.getWorth(tier)) + "&divide;4 + 1)<sup>0.25</sup>&times;6";
 				} else {
-					html += "<b>Formula:</b> (1 + bands&times;worth&divide;4)<sup>0.5</sup>";
-					html += "<br><b>Calculation:</b> (1 + " + formatWhole(BAND.getAmount(tier)) + "&times;" +format(BAND.getWorth(tier)) + "&divide;4)<sup>0.5</sup>";
+					html += "<b>Formula:</b> (bands&times;worth&divide;4 + 1)<sup>0.5</sup>";
+					html += "<br><b>Calculation:</b> (" + formatWhole(BAND.getAmount(tier)) + "&times;" +format(BAND.getWorth(tier)) + "&divide;4 + 1)<sup>0.5</sup>";
 				};
 				html += "</div>";
 			};

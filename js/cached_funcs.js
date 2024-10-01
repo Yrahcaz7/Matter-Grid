@@ -96,7 +96,7 @@ const BAND = function() {
 		getEffect(tier) {
 			if (cache.effect && cache.effect[tier]) return cache.effect[tier];
 			let eff = (1 + this.getAmount(tier) * this.getWorth(tier) / 4) ** 0.5;
-			if (eff > 100) eff = ((eff / 100) ** 0.5) * 100;
+			if (eff > 36) eff = ((eff / 36) ** 0.5) * 36;
 			return cacheValue("effect", tier, eff);
 		},
 		/**
