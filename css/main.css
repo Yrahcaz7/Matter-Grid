@@ -25,20 +25,27 @@ html, body {
 	float: inline-start;
 }
 
-#grid, #gridAnimation {
-	box-sizing: border-box;
+#grid, #gridAnimation, #animationCover, #wormhole {
 	display: flex;
 	align-items: center;
     justify-content: center;
+}
+
+#grid, #gridAnimation, #resetAnimation {
+	box-sizing: border-box;
 	width: 50%;
 	height: 100%;
 	padding: 10px;
-	user-select: none;
 	-webkit-user-select: none;
+	user-select: none;
+}
+
+#gridAnimation, #resetAnimation, #resetAnimation>div {
+	position: absolute;
+	z-index: 1;
 }
 
 #gridAnimation {
-	position: absolute;
 	transition: all 0.8s 0s, opacity 0.4s 0.8s;
 }
 
@@ -46,7 +53,7 @@ html, body {
 	transition: all 0.8s 0.4s, opacity 0.4s 0s;
 }
 
-#gridAnimation>* {
+#gridAnimation>*, #resetAnimation>div {
 	background-color: var(--bg-color);
 }
 
@@ -56,13 +63,13 @@ table {
 	border-collapse: collapse;
 }
 
-th {
-	background-color: color-mix(in srgb, var(--txt-color), transparent);
+th, .header {
+	background-color: #808080 !important;
 	color: var(--bg-color);
 	cursor: default;
 }
 
-td, th {
+td, th, #resetAnimation>div {
 	border: 2px solid var(--txt-color);
 	padding: 0;
 	font-size: calc(clamp(11px, 2.75vw, 5.5vh) - 2px);
@@ -74,14 +81,19 @@ td::before, th::before {
 	padding-top: 100%;
 }
 
-td>div, th>div {
+td>div, th>div, #resetAnimation>div>div {
 	padding-top: 100%;
 	background-color: var(--tier-color);
 	line-height: 0;
 }
 
-td>div>div, th>div>div {
+td>div>div, th>div>div, #resetAnimation>div>div>div {
 	margin-top: -45%;
+}
+
+#resetAnimation>div {
+	width: var(--tile-size);
+	height: var(--tile-size);
 }
 
 #bar {
@@ -121,6 +133,34 @@ td>div>div, th>div>div {
 	overflow: auto;
 }
 
+.info {
+	width: 2em;
+	height: 2em;
+	border-radius: 50%;
+	fill: var(--txt-color);
+	cursor: pointer;
+}
+
+.popup {
+	right: 5px;
+	position: absolute;
+	box-sizing: border-box;
+	width: fit-content;
+	max-width: calc(100vw - 15px);
+	border: 2px solid var(--txt-color);
+	background: var(--bg-color);
+	padding: 5px;
+	white-space: pre-wrap;
+}
+
+.popup>div {
+	margin: auto;
+}
+
+select {
+	padding: 0px !important;
+}
+
 #skillContainer {
 	width: 100%;
 	height: 100%;
@@ -154,6 +194,12 @@ td>div>div, th>div>div {
 	position: absolute;
 	width: 2em;
 	border: 1px solid var(--txt-color);
+	background-color: var(--txt-color);
+}
+
+.line.off {
+	border-color: #808080;
+	background-color: #808080;
 }
 
 .skillUI {
@@ -168,7 +214,7 @@ td>div>div, th>div>div {
 	pointer-events: auto;
 }
 
-.skillUI button.on {
+button.off {
 	background-color: var(--bg-color);
 	border-color: #808080;
 	color: #808080;
@@ -179,12 +225,12 @@ hr {
 	border: 1px solid var(--txt-color);
 }
 
-input, button {
+input, button, select {
 	font-size: medium;
 	font-family: 'Courier New', Courier, monospace;
 }
 
-button:not(.on) {
+button:not(.on):not(.off) {
 	cursor: pointer;
 }
 
@@ -211,7 +257,7 @@ dialog {
 	overflow: auto;
 }
 
-.box, dialog, input, button {
+.box, dialog, input, button, select {
 	background-color: var(--bg-color);
 	border: 2px solid var(--txt-color);
 	padding: 5px;
@@ -227,11 +273,47 @@ dialog {
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	z-index: 1;
+	z-index: 2;
+}
+
+#wormhole {
+	background: conic-gradient(#10F010, #10F0F0, #1010F0, #F010F0, #F01010, #F0F010, #10F010);
+	mask: radial-gradient(#000000, transparent, transparent);
+	animation: 8s ease 0s growshrink, 8s linear 0s rotate;
+}
+
+#wormhole>div {
+	width: 10%;
+	height: 10%;
+	background: radial-gradient(#F0F0F0, transparent, transparent);
+}
+
+@keyframes wormhole {
+	50% {
+		transform: rotate(180deg) scale(1, 1);
+	}
+	100% {
+		top: calc(50vh - var(--tile-size) / 2);
+		left: calc(50vw - var(--tile-size) / 2);
+		transform: rotate(360deg) scale(0, 0);
+		display: none;
+	}
+}
+
+@keyframes growshrink {
+	0% {width: 0; height: 0}
+	40% {width: 100vmin; height: 100vmin}
+	60% {width: 100vmin; height: 100vmin}
+	100% {width: 0; height: 0}
+}
+
+@keyframes rotate {
+	from {transform: rotate(0deg)}
+	to {transform: rotate(360deg)}
 }
 
 @media screen and (max-width: 600px) {
-	#grid, #gridAnimation {
+	#grid, #gridAnimation, #resetAnimation {
 		margin-left: -100%;
 	}
 	#bar {

@@ -1,4 +1,4 @@
-const COLORS = ["#10F010", "#10F0F0", "#1010F0", "#F010F0", "#F01010", "#F0F010"];
+const COLORS = ["#40F040", "#40F0F0", "#4040F0", "#F040F0", "#F04040", "#F0F040"];
 
 /**
  * Returns a whole number formatted as a string.
@@ -34,6 +34,7 @@ function format(num) {
  */
 function formatPercent(num) {
 	let mag = Math.abs(num);
+	if (mag >= 999.5) return formatWhole(mag) + "%";
 	let places = 2 - (mag >= 9.995 ? 1 : 0) - (mag >= 99.95 ? 1 : 0);
 	return (+num).toFixed(places) + "%";
 };

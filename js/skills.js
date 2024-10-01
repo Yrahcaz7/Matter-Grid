@@ -18,7 +18,32 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [0 - (index * 12 + 22), -5]},
-		line(index) {return [0 - (index * 12 + 12), 0]},
+		lines(index) {return [{x: 0 - (index * 12 + 12)}]},
+	},
+	mir: {
+		data: [{
+			name: "Reflection",
+			desc: "Adds " + format(0.05) + " mirror power",
+			cost: 2,
+			req: [["raw", 0], ["band", 0]],
+		}, {
+			name: "Stronger Mirroring",
+			desc: "Adds " + format(0.1) + " mirror power",
+			cost: 4,
+			req: [["raw", 1], ["band", 1]],
+		}, {
+			name: "Reinforced Reflection",
+			desc: "Adds " + format(0.15) + " mirror power",
+			cost: 8,
+			req: [["raw", 2], ["band", 2]],
+		}],
+		pos(index) {return [0 - (index * 12 + 22), 0 - (index * 12 + 22)]},
+		lines(index) {return [
+			{x: 0 - (index * 12 + 12), y: 0 - (index * 12 + 11), size: 3, rot: 45},
+			{x: 0 - (index * 12 + 18), y: 0 - (index * 6 + 8.5), size: index * 12 + 7, rot: 90},
+			{x: 0 - (index * 6 + 9.5), y: 0 - (index * 12 + 17), size: index * 12 + 7},
+		]},
+		unlocked() {return hasMilestone(0)},
 	},
 	band: {
 		data: [{
@@ -30,14 +55,43 @@ const SKILLS = {
 			desc: "Unlocks the " + colorText(getTierName(1), 1) + " band effect",
 			cost: 10,
 		}, {
-			name: "Enhanced Band Power",
-			desc: "Makes all band types worth 2x as much",
+			name: "Band Power Enhancement",
+			desc: "Adds +100% band worth for all band types",
 			cost: 20,
+		}, {
+			name: "Band Power Refinement",
+			desc: "Adds +100% band worth for all band types",
+			cost: 40,
 		}],
 		pos(index) {return [-5, 0 - (index * 12 + 22)]},
-		line(index) {return [-1, 0 - (index * 12 + 11), 90]},
+		lines(index) {return [{x: -1, y: 0 - (index * 12 + 11), rot: 90}]},
 	},
-	area: {
+	rhom: {
+		data: [{
+			name: "Cascading Area",
+			desc: "Adds 5% of adjacent power as rhombus power",
+			cost: 2,
+			req: [["band", 0], ["adj", 0]],
+		}, {
+			name: "Stronger Rhombus",
+			desc: "Adds 10% of adjacent power as rhombus power",
+			cost: 4,
+			req: [["band", 1], ["adj", 1]],
+		}, {
+			name: "Adjacent Linking",
+			desc: "Adds 15% of adjacent power as rhombus power",
+			cost: 8,
+			req: [["band", 2], ["adj", 2]],
+		}],
+		pos(index) {return [index * 12 + 12, 0 - (index * 12 + 22)]},
+		lines(index) {return [
+			{x: index * 12 + 10, y: 0 - (index * 12 + 11), size: 3, rot: 135},
+			{x: index * 6 + 7.5, y: 0 - (index * 12 + 17), size: index * 12 + 7},
+			{x: index * 12 + 16, y: 0 - (index * 6 + 8.5), size: index * 12 + 7, rot: 90},
+		]},
+		unlocked() {return hasMilestone(0)},
+	},
+	adj: {
 		data: [{
 			name: "Larger Area",
 			desc: "Adds 5% of click power as adjacent power",
@@ -56,7 +110,32 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [index * 12 + 12, -5]},
-		line(index) {return [index * 12 + 10, 0]},
+		lines(index) {return [{x: index * 12 + 10}]},
+	},
+	adjsp: {
+		data: [{
+			name: "Leftover Area",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
+			cost: 2,
+			req: [["adj", 0], ["sp", 0]],
+		}, {
+			name: "Liquid Links",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
+			cost: 4,
+			req: [["adj", 1], ["sp", 1]],
+		}, {
+			name: "Adjacent Experience",
+			desc: "Adds [ln(SP + 1) &times; 2]% of click power as adjacent power",
+			cost: 8,
+			req: [["adj", 2], ["sp", 2]],
+		}],
+		pos(index) {return [index * 12 + 12, index * 12 + 12]},
+		lines(index) {return [
+			{x: index * 12 + 10, y: index * 12 + 11, size: 3, rot: 45},
+			{x: index * 12 + 16, y: index * 6 + 8.5, size: index * 12 + 7, rot: 90},
+			{x: index * 6 + 7.5, y: index * 12 + 17, size: index * 12 + 7},
+		]},
+		unlocked() {return hasMilestone(0)},
 	},
 	sp: {
 		data: [{
@@ -77,7 +156,32 @@ const SKILLS = {
 			cost: 8,
 		}],
 		pos(index) {return [-5, index * 12 + 12]},
-		line(index) {return [-1, index * 12 + 11, 90]},
+		lines(index) {return [{x: -1, y: index * 12 + 11, rot: 90}]},
+	},
+	rawsp: {
+		data: [{
+			name: "Leftover Clicks",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
+			cost: 2,
+			req: [["sp", 0], ["raw", 0]],
+		}, {
+			name: "Oozing Clicks",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
+			cost: 4,
+			req: [["sp", 1], ["raw", 1]],
+		}, {
+			name: "Skilled Clicks",
+			desc: "Adds [ln(SP + 1) &times; 3]% click power mult",
+			cost: 8,
+			req: [["sp", 2], ["raw", 2]],
+		}],
+		pos(index) {return [0 - (index * 12 + 22), index * 12 + 12]},
+		lines(index) {return [
+			{x: 0 - (index * 12 + 12), y: index * 12 + 11, size: 3, rot: 135},
+			{x: 0 - (index * 6 + 9.5), y: index * 12 + 17, size: index * 12 + 7},
+			{x: 0 - (index * 12 + 18), y: index * 6 + 8.5, size: index * 12 + 7, rot: 90},
+		]},
+		unlocked() {return hasMilestone(0)},
 	},
 };
 
@@ -100,7 +204,7 @@ function getSkillTreeStyle() {
  * Centers the skill tree display.
  */
 function centerSkillTree() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (document.getElementById("skillContainer") && document.getElementById("skillTree")) {
 		document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillTree").offsetWidth - document.getElementById("skillContainer").offsetWidth) / 2;
 		document.getElementById("skillContainer").scrollTop = (document.getElementById("skillTree").offsetHeight - document.getElementById("skillContainer").offsetHeight) / 2;
@@ -112,9 +216,9 @@ function centerSkillTree() {
  * @param {boolean} out - if true, zooms out, not in.
  */
 function zoomSkillTree(out = false) {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	if (document.getElementById("skillContainer")) {
-		let size = [document.getElementById("skillContainer").offsetWidth / 2, document.getElementById("skillContainer").offsetHeight / 2];
+		let size = [document.getElementById("skillContainer").getBoundingClientRect().width / 2, document.getElementById("skillContainer").offsetHeight / 2];
 		if (out) {
 			if (game.skillZoom <= -20) return;
 			game.skillZoom--;
@@ -128,8 +232,8 @@ function zoomSkillTree(out = false) {
 			document.getElementById("skillContainer").scrollLeft = (document.getElementById("skillContainer").scrollLeft + size[0]) * (4 / 3) ** (1 / 3) - size[0];
 			document.getElementById("skillContainer").scrollTop = (document.getElementById("skillContainer").scrollTop + size[1]) * (4 / 3) ** (1 / 3) - size[1];
 		};
-		document.getElementById("zoomOut").className = (game.skillZoom <= -20 ? "on" : "");
-		document.getElementById("zoomIn").className = (game.skillZoom >= 20 ? "on" : "");
+		document.getElementById("zoomOut").className = (game.skillZoom <= -20 ? "off" : "");
+		document.getElementById("zoomIn").className = (game.skillZoom >= 20 ? "off" : "");
 	};
 };
 
@@ -137,7 +241,7 @@ function zoomSkillTree(out = false) {
  * Resets the zoom and scroll of the skill tree display.
  */
 function resetSkillTreeZoom() {
-	if (gridAnimation.on) return;
+	if (gridAnimation.on || resetAnimation.on) return;
 	game.skillZoom = 0;
 	document.getElementById("skillTree").style = getSkillTreeStyle();
 	centerSkillTree();
@@ -146,31 +250,17 @@ function resetSkillTreeZoom() {
 };
 
 /**
- * Adjusts the skill UI appropriately.
+ * Checks the unlock status of a skill specified by its path and index.
+ * @param {string} path - the path of the skill to check.
+ * @param {number} index - the index of the skill to check.
  */
-function adjustSkillUI() {
-	if (document.getElementById("skillContainer")) {
-		let skillUI = document.getElementsByClassName("skillUI");
-		if (skillUI.length) {
-			let width = 0;
-			for (let index = 0; index < skillUI.length; index++) {
-				width += skillUI[index].offsetWidth;
-			};
-			if (document.getElementById("skillContainer").offsetWidth + 15 < width) {
-				let respec = skillUI[0].children[0];
-				if (respec) {
-					skillUI[1].innerHTML += "<div class='skillUI' style='right: 10px; padding: 0'>" + respec.outerHTML + "</div>";
-					skillUI[0].removeChild(respec);
-				};
-			} else {
-				let respec = skillUI[1].children[2];
-				if (respec) {
-					skillUI[0].innerHTML += respec.innerHTML;
-					skillUI[1].removeChild(respec);
-				};
-			};
-		};
+function skillUnlocked(path, index) {
+	if (typeof SKILLS[path].unlocked == "function" && !SKILLS[path].unlocked()) return false;
+	if (index > 0 && !hasSkill(path, index - 1)) return false;
+	for (let num = 0; num < SKILLS[path].data[index].req?.length; num++) {
+		if (!hasSkill(...SKILLS[path].data[index].req[num])) return false;
 	};
+	return true;
 };
 
 /**
@@ -200,9 +290,10 @@ function getSkillsOnPath(path) {
  * @param {number} index - the index of the skill to check.
  */
 function buySkill(path, index) {
-	if (gridAnimation.on) return;
-	if (game.skills[path][index] === undefined && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
+	if (gridAnimation.on || resetAnimation.on) return;
+	if (skillUnlocked(path, index) && !hasSkill(path, index) && SP.getTotal() - SP.getSpent() >= SKILLS[path].data[index].cost) {
 		game.skills[path][index] = SKILLS[path].data[index].cost;
+		clearCaches();
 		update();
 	};
 };
@@ -231,21 +322,30 @@ const SP = {
 		if (hasSkill("sp", 1)) mult += 0.25;
 		if (hasSkill("sp", 2)) mult += 0.3;
 		if (hasSkill("sp", 3)) mult += 0.35;
+		if (game.resetPoints > 0) mult *= RP.getEff();
 		return mult;
+	},
+	/**
+	 * Gets the player's extra skill points.
+	 */
+	getExtra() {
+		let extra = 0;
+		if (hasMilestone(2)) extra += getMilestoneEffect(2);
+		return extra;
 	},
 	/**
 	 * Gets the player's total skill points.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getTotal(matter = getMatter()) {
-		return Math.floor((matter ** 0.5) / 2 * SP.getMult());
+		return Math.floor((matter ** 0.5) / 2 * SP.getMult()) + SP.getExtra();
 	},
 	/**
 	 * Gets the amount of matter required for the previous skill point.
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getPrevAt(matter = getMatter()) {
-		let amt = SP.getTotal(matter);
+		let amt = SP.getTotal(matter) - SP.getExtra();
 		return Math.ceil((amt / SP.getMult() * 2) ** 2);
 	},
 	/**
@@ -253,7 +353,7 @@ const SP = {
 	 * @param {number} matter - overrides the matter amount in the formula.
 	 */
 	getNextAt(matter = getMatter()) {
-		let amt = SP.getTotal(matter) + 1;
+		let amt = SP.getTotal(matter) - SP.getExtra() + 1;
 		return Math.ceil((amt / SP.getMult() * 2) ** 2);
 	},
 	/**
@@ -288,11 +388,10 @@ const SP = {
 			element.onclick = () => {
 				game.skills = {};
 				game.respecProg = 0;
+				clearCaches();
 				update(true);
 			};
 			document.getElementById("confirm_respec").append(element);
 		};
 	},
 };
-
-window.addEventListener("resize", adjustSkillUI);
