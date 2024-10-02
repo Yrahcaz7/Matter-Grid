@@ -3,7 +3,7 @@ const MILESTONES = [
 	[2, "Adds 0.1% of power level as click A-power per RP", () => game.resetPoints * 0.001],
 	[3, "Adds 1 free SP per RP", () => game.resetPoints],
 	[4, "Adds 0.05% of adjacent power as adjacent A-power per RP", () => game.resetPoints * 0.0005],
-	[5, "Coming soon"],
+	[5, "The end for now... but more is coming soon!"],
 ];
 
 /**
