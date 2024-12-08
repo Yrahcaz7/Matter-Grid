@@ -59,15 +59,10 @@ function toggleBar(force = false) {
 
 /**
  * Gets an info button in HTML format.
- * @param {number} lines - the number of lines the info button is next to.
  */
-function getInfoButton(lines) {
+function getInfoButton() {
 	let html = "";
-	// 0.01x^2 + 0.51x - 1.21 is a quadratic fit for the following points: (1, -0.68) (2, -0.16) (3, 0.42) (4, 1) (5, 1.59)
-	// these points are approximations of the correct margin in em (x) to center an info button with a number of lines (y)
-	// this quadratic formula replaces the linear formula of 0.55x - 1.25 which drifted noticably when zoomed on 4+ lines
-	let quadratic = Math.round((0.01 * (lines ** 2) + 0.51 * lines - 1.21) * 1e12) / 1e12;
-	html += "<svg viewBox='0 0 16 16' class='info' style='margin: " + (lines == 1 ? -0.5 : 0) + "em 0 " + quadratic + "em' onmouseenter='adjustUI()' onmouseleave='adjustUI()'>";
+	html += "<svg viewBox='0 0 16 16' class='info' onmouseenter='adjustUI()' onmouseleave='adjustUI()' onmousedown='adjustUI()'>";
 	html += "<path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16'/>";
 	html += "<path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0'/>";
 	html += "</svg>";
@@ -249,14 +244,11 @@ function update(resetScroll = false) {
 			html += "<br>You are " + colorText(formatPercent(amt / (144 ** index) * 100), index) + " of the way to filling a " + colorText(getTierName(index), index);
 		};
 		// band displays
-		html += "<br>";
+		html += "<br><br>";
 		for (let tier = 0; tier < game.layer.length; tier++) {
-			html += "<br><div style='display: inline-block'>You have " + colorText(formatWhole(BAND.getAmount(tier)), tier) + " complete band" + (BAND.getAmount(tier) != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
-			if (BAND.hasEffect(tier)) {
-				html += ",<br>which " + (BAND.getAmount(tier) != 1 ? "are" : "is") + " " + BAND.getEffectDesc(tier) + "</div> " + getInfoButton(2);
-			} else {
-				html += "</div>";
-			};
+			if (BAND.hasEffect(tier)) html += "<div class='flex'><div>";
+			html += "You have " + colorText(formatWhole(BAND.getAmount(tier)), tier) + " complete band" + (BAND.getAmount(tier) != 1 ? "s" : "") + " of " + colorText(getTierName(tier) + (tier > 0 ? "s" : ""), tier);
+			if (BAND.hasEffect(tier)) html += ",<br>which " + (BAND.getAmount(tier) != 1 ? "are" : "is") + " " + BAND.getEffectDesc(tier) + "</div>" + getInfoButton() + "</div>";
 		};
 		// power setup
 		let powerType = (game.activePowTier > 0 ? String.fromCharCode(64 + game.activePowTier) + "-" : "") + "power";
@@ -282,12 +274,12 @@ function update(resetScroll = false) {
 			if (game.activePowTier > 0) html += " (" + formatPercent(POWER.getMirrorFactor(game.activePowTier) * 100) + " of mirror " + prevPowerType + ")";
 		};
 		// power level display
-		html += "<br><br>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier)) + " " + getInfoButton(1);
+		html += "<br><br><div class='flex'><div>Your " + powerType + " level is " + format(POWER.getLevel(game.activePowTier)) + "</div>" + getInfoButton() + "</div>";
 		// power tier display
-		html += "<br><br>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
+		html += "<br><div class='flex'><div>Active power tier: <select id='activePowTier' tabIndex='-1' onchange='game.activePowTier = +this.value; update()'>";
 		html += "<option value='0'" + (game.activePowTier == 0 ? " selected" : "") + ">none</option>";
 		if (POWER.getClick(1) > 0) html += "<option value='1'" + (currentTier < 1 ? " disabled" : (game.activePowTier == 1 ? " selected" : "")) + ">A</option>";
-		html += "</select> " + getInfoButton(1);
+		html += "</select></div>" + getInfoButton() + "</div>";
 	} else if (game.tab == "Skills") {
 		html += "<div id='skillContainer'><div id='skillTree' style='" + getSkillTreeStyle() + "'>";
 		html += "<div id='centerSkillDisplay' class='skill'>";
@@ -560,18 +552,13 @@ function adjustUI() {
 				popupList[index].style = "";
 				let children = popupList[index].children;
 				for (let child = 0; child < children.length; child++) {
-					children[child].style.width = "auto";
-				};
-				requestAnimationFrame(() => {
-					let children = popupList[index].children;
-					for (let child = 0; child < children.length; child++) {
-						if (children[child] instanceof HTMLDivElement) {
-							const range = document.createRange();
-							range.selectNodeContents(children[child]);
-							children[child].style.width = range.getBoundingClientRect().width + "px";
-						};
+					if (children[child] instanceof HTMLDivElement) {
+						children[child].style.width = "auto";
+						const range = document.createRange();
+						range.selectNodeContents(children[child]);
+						children[child].style.width = range.getBoundingClientRect().width + "px";
 					};
-				});
+				};
 			} else {
 				popupList[index].style = "display: none";
 			};

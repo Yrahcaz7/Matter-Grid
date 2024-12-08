@@ -43,8 +43,9 @@ function formatPercent(num) {
  * Returns a string colored with a specified tier's color in HTML format.
  * @param {string} str - the string to color.
  * @param {number} tier - the tier to use for coloring.
+ * @param {boolean} noBreaks - whether to dissallow line breaking. Defaults to 'true'.
  */
-function colorText(str, tier = -1) {
+function colorText(str, tier = -1, noBreaks = true) {
 	if (tier < 0) return str;
-	return "<span style='color: color-mix(in srgb, var(--txt-color), " + COLORS[tier % COLORS.length] + ")'>" + str + "</span>";
+	return "<span style='color: color-mix(in srgb, var(--txt-color), " + COLORS[tier % COLORS.length] + ")" + (noBreaks ? "; white-space: nowrap" : "") + "'>" + str + "</span>";
 };
