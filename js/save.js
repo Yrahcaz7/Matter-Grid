@@ -44,7 +44,7 @@ const SAVE = {
 			element.id = "confirm_export";
 			let item = localStorage.getItem(SAVE.ID);
 			if (item) element.innerHTML = "<div>Your save is shown below.</div><div class='box'>" + item + "</div>";
-			else element.innerHTML = "<div>Your have no saved data to export.</div>";
+			else element.innerHTML = "<div>You have no saved data to export.</div>";
 			document.body.append(element);
 			element.showModal();
 		};
@@ -127,4 +127,6 @@ const SAVE = {
 	ID: "Yrahcaz7/Matter-Grid/save",
 };
 
-window.addEventListener("beforeunload", SAVE.save);
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden) SAVE.save();
+});
