@@ -62,7 +62,7 @@ function toggleBar(force = false) {
  */
 function getInfoButton() {
 	let html = "";
-	html += "<svg viewBox='0 0 16 16' class='info' onmouseenter='adjustUI()' onmouseleave='adjustUI()' onmousedown='adjustUI()'>";
+	html += "<svg viewBox='0 0 16 16' class='info' onmouseenter='adjustUI(true)' onmouseleave='adjustUI(true)'>";
 	html += "<path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16'/>";
 	html += "<path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0'/>";
 	html += "</svg>";
@@ -183,7 +183,7 @@ function update(resetScroll = false) {
 		if (TABS[index] == game.tab) html += "<button tabindex='-1' class='on'>" + TABS[index] + "</button>";
 		else html += "<button tabindex='-1' onclick='changeTab(" + index + ")'>" + TABS[index] + "</button>";
 	};
-	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + " onscroll='adjustUI()'>";
+	html += "</div><div id='main'" + (game.tab == "Skills" ? " style='padding: 0px;'" : "") + " onscroll='adjustUI(true)'>";
 	// main bar display
 	if (game.tab == "Stats") {
 		// regions setup
@@ -521,9 +521,10 @@ function update(resetScroll = false) {
 
 /**
  * Adjusts UI appropriately.
+ * @param {boolean} onlyPopups - if true, only adjusts popups.
  */
-function adjustUI() {
-	if (document.getElementById("skillContainer")) {
+function adjustUI(onlyPopups = false) {
+	if (!onlyPopups && document.getElementById("skillContainer")) {
 		let skillUI = document.getElementsByClassName("skillUI");
 		if (skillUI.length) {
 			let width = 0;
@@ -544,32 +545,29 @@ function adjustUI() {
 				};
 			};
 		};
-	} else {
-		let infoList = document.getElementsByClassName("info");
-		let popupList = document.getElementsByClassName("popup");
-		for (let index = 0; index < infoList.length && index < popupList.length; index++) {
-			if (infoList[index].matches(":hover")) {
-				popupList[index].style = "";
-				let children = popupList[index].children;
-				for (let child = 0; child < children.length; child++) {
-					if (children[child] instanceof HTMLDivElement) {
-						children[child].style.width = "auto";
-						const range = document.createRange();
-						range.selectNodeContents(children[child]);
-						children[child].style.width = range.getBoundingClientRect().width + "px";
-					};
+	};
+	let infoList = document.getElementsByClassName("info");
+	let popupList = document.getElementsByClassName("popup");
+	for (let index = 0; index < infoList.length && index < popupList.length; index++) {
+		if (infoList[index].matches(":hover")) {
+			popupList[index].style = "";
+			let children = popupList[index].children;
+			for (let child = 0; child < children.length; child++) {
+				if (children[child] instanceof HTMLDivElement) {
+					children[child].style.width = "auto";
+					const range = document.createRange();
+					range.selectNodeContents(children[child]);
+					children[child].style.width = range.getBoundingClientRect().width + "px";
 				};
-			} else {
-				popupList[index].style = "display: none";
 			};
-			requestAnimationFrame(() => {
-				let infoRect = infoList[index].getBoundingClientRect();
-				if (infoRect.bottom + popupList[index].getBoundingClientRect().height + 15 > document.documentElement.offsetHeight) {
-					popupList[index].style.bottom = "calc(100% - " + (infoRect.top - 5) + "px)";
-				} else {
-					popupList[index].style.top = (infoRect.bottom + 5) + "px";
-				};
-			});
+		} else {
+			popupList[index].style = "display: none";
+		};
+		let infoRect = infoList[index].getBoundingClientRect();
+		if (infoRect.bottom + popupList[index].getBoundingClientRect().height + 15 > document.documentElement.offsetHeight) {
+			popupList[index].style.bottom = "calc(100% - " + (infoRect.top - 5) + "px)";
+		} else {
+			popupList[index].style.top = (infoRect.bottom + 5) + "px";
 		};
 	};
 };
@@ -579,4 +577,6 @@ window.addEventListener("load", () => {
 	update(true);
 });
 
-window.addEventListener("resize", adjustUI);
+window.addEventListener("resize", () => adjustUI());
+
+window.addEventListener("mousedown", () => adjustUI(true));

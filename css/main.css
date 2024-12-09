@@ -7,11 +7,6 @@
 	overscroll-behavior: none;
 }
 
-html {
-	overflow: hidden;
-	overflow: clip;
-}
-
 html, body {
 	margin: 0;
 	height: 100%;
@@ -19,6 +14,7 @@ html, body {
 	text-align: center;
 	font-family: 'Courier New', Courier, monospace;
 	color: var(--txt-color);
+	overflow: clip;
 }
 
 #grid {

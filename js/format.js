@@ -43,7 +43,7 @@ function formatPercent(num) {
  * Returns a string colored with a specified tier's color in HTML format.
  * @param {string} str - the string to color.
  * @param {number} tier - the tier to use for coloring.
- * @param {boolean} noBreaks - whether to dissallow line breaking. Defaults to 'true'.
+ * @param {boolean} noBreaks - if false, allows line breaking.
  */
 function colorText(str, tier = -1, noBreaks = true) {
 	if (tier < 0) return str;
