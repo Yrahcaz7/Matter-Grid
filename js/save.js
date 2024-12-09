@@ -43,7 +43,7 @@ const SAVE = {
 			let element = document.createElement("dialog");
 			element.id = "confirm_export";
 			let item = localStorage.getItem(SAVE.ID);
-			if (item) element.innerHTML = "<div>Your save is shown below.</div><div class='box'>" + item + "</div>";
+			if (item) element.innerHTML = "<div>Your save is shown below.</div><div id='save' tabIndex='-1' class='box'>" + item + "</div>";
 			else element.innerHTML = "<div>You have no saved data to export.</div>";
 			document.body.append(element);
 			element.showModal();
@@ -54,6 +54,22 @@ const SAVE = {
 			element.tabIndex = -1;
 			element.innerHTML = "Close";
 			element.onclick = () => document.getElementById("confirm_export").remove();
+			document.getElementById("confirm_export").append(element);
+		};
+		if (!document.getElementById("confirm_export_yes")) {
+			let element = document.createElement("button");
+			element.id = "confirm_export_yes";
+			element.tabIndex = -1;
+			element.innerHTML = "Copy Save";
+			element.onclick = () => {
+				var range = document.createRange();
+				range.selectNodeContents(document.getElementById("save"));
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+				if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById("save").innerText).then(null, err => console.error("Could not copy save: ", err));
+				else console.error("Could not copy save: navigator.clipboard is not supported in this context.");
+			};
 			document.getElementById("confirm_export").append(element);
 		};
 	},
