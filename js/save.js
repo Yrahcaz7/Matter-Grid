@@ -121,8 +121,8 @@ const SAVE = {
 			let obj = JSON.parse(atob(item));
 			if (!obj.darkMode) toggleDarkMode();
 			Object.assign(game, obj);
-			loaded = true;
 		};
+		loaded = true;
 	},
 	ID: "Yrahcaz7/Matter-Grid/save",
 };
