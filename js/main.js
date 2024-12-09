@@ -579,4 +579,4 @@ window.addEventListener("load", () => {
 
 window.addEventListener("resize", () => adjustUI());
 
-window.addEventListener("mousedown", () => adjustUI(true));
+document.addEventListener("mousedown", () => adjustUI(true));
